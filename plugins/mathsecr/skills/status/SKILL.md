@@ -1,6 +1,6 @@
 ---
 name: status
-description: 수학비서 연결 상태 확인 — 지금 Claude 에 어떤 수학비서 계정이 연결됐는지 본다. "수학비서 연결됐어?", "어느 계정으로 로그인돼 있어?", 로그인·인증 오류가 났을 때 쓴다.
+description: 수학비서 연결 상태 확인 — 지금 Claude 에 어떤 수학비서 계정이 연결됐는지 본다. "수학비서 연결됐어?", "어느 계정으로 로그인돼 있어?", 로그인·인증 오류나 도구 정의 불일치(output schema) 오류가 났을 때 쓴다.
 allowed-tools: mcp__plugin_mathsecr_api__whoami
 ---
 
@@ -9,3 +9,4 @@ allowed-tools: mcp__plugin_mathsecr_api__whoami
 - 성공하면: "수학비서에 **{이름}** 님 계정으로 연결돼 있어요." 처럼 이름만 말한다. 회원 ID 는 묻지 않으면 말하지 않는다.
 - 도구가 없거나 인증이 필요하다는 오류면: Claude Code 에서는 `/mcp` 를 열어 `plugin:mathsecr:api` 서버의 인증(Authenticate)을 진행하라고 안내하고, Claude Desktop 에서는 설정 → 커넥터에서 수학비서를 연결하라고 안내한다.
 - "연결이 끊겼습니다" 류 오류면: 수학비서 로그인이 만료됐다는 뜻이니 같은 방법으로 다시 연결하라고 안내한다.
+- "output schema" 불일치 오류나, 도구 정의에 있는 입력이 "입력 형식" 오류로 거절되면: 수학비서 서버가 업데이트됐는데 Claude 가 예전 도구 정의를 쓰고 있다는 뜻이다. Claude Code 에서는 `/mcp` 에서 `plugin:mathsecr:api` 를 다시 연결(Reconnect)하거나 새 세션을 열고, Claude Desktop 에서는 새 대화를 열라고 안내한다. 로그인은 다시 하지 않아도 된다.
