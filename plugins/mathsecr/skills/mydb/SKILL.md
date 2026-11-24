@@ -25,7 +25,7 @@ allowed-tools: mcp__plugin_mathsecr_api__mydb_count, mcp__plugin_mathsecr_api__m
   - `curriculumId` 가 필요하다. 모르면 `curriculum_list` 로 정한다. 단원으로 거르려면 `chapter_tree` 의 `tree_id` 를 `chapterTreeIds` 로 넘긴다.
   - 쪽만 보려면 `pageNumbers`. 커서는 문항 단위다.
 - `mydb_scores`(`dbId`): 문항별 **배점**이다. 학생 성적이 아니다. `null` 은 배점 미설정이다.
-- `mydb_purchasable`(`dbId`): 쪽별로 문항·해설을 이미 이용할 수 있는지. 구매하지 않는다. 응답 안의 쪽 내부 잘림(`nestedTruncated`)은 커서로 이어지지 않으니 "일부 쪽은 요약만 왔다" 고 밝힌다.
+- `mydb_purchasable`(`dbId`): **업로드한 DB(PDF)** 의 쪽별 인식 문항과 그 문항·해설 이용 권한. 구매·공유받은 DB(`acquisitionType` 이 `PURCHASE`·`SHARED` 등)는 업로드한 쪽이 없어 늘 빈 목록이다. 빈 결과를 오류로 보지 말고, 구매 DB 의 구성은 `mydb_cells` 로 본다. 구매하지 않는다. 응답 안의 쪽 내부 잘림(`nestedTruncated`)은 커서로 이어지지 않으니 "일부 쪽은 요약만 왔다" 고 밝힌다.
 
 ## 한도·상품권
 
