@@ -31,6 +31,7 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
 
 - 문항은 **ID·단원 경로·난이도·정답 유형·문제은행 여부**로 표를 만든다. 문항 본문·이미지·정답·해설은 도구가 주지 않는다. 지어내지 말고 "문항 내용은 수학비서 웹에서 확인해 주세요" 라고 안내한다.
 - `hasPermission` 이 false 거나 `isUnavailable`·`isProblemBankRemoved` 가 true 인 문항은 표에 표시해 구분한다.
+- `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
 - `totalCount` 와 실제로 받은 개수(`returnedCount`)를 함께 말한다. `truncated`·`nestedTruncated` 가 true 면 일부라고 밝힌다.
 - 후보가 많으면 상위 몇 개만 보이고 기준(난이도·단원 분포)을 요약한다.
 
