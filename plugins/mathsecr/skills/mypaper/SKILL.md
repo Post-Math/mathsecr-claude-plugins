@@ -1,7 +1,7 @@
 ---
 name: mypaper
 description: 수학비서 문제지 조회 — 내 문제지·학습지·시험지의 목록·진행 상태·문항 구성·배점·페이지 배치·문제은행 변경을 본다. "내 문제지 목록", "○○ 시험지 문항 구성 보여줘", "배점 합계 맞아?", "채점할 거 남았어?", "문제은행에서 바뀐 문항 있어?" 같은 요청에 쓴다. 문제지를 만들거나 고치거나 배포하지 않는다.
-allowed-tools: mcp__plugin_mathsecr_api__mypaper_count, mcp__plugin_mathsecr_api__mypaper_list, mcp__plugin_mathsecr_api__mypaper_detail, mcp__plugin_mathsecr_api__mypaper_cells, mcp__plugin_mathsecr_api__mypaper_pages, mcp__plugin_mathsecr_api__mypaper_scores, mcp__plugin_mathsecr_api__mypaper_cell_changes, mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_api__cell_detail
+allowed-tools: mcp__plugin_mathsecr_api__mypaper_count, mcp__plugin_mathsecr_api__mypaper_list, mcp__plugin_mathsecr_api__mypaper_detail, mcp__plugin_mathsecr_api__mypaper_cells, mcp__plugin_mathsecr_api__mypaper_pages, mcp__plugin_mathsecr_api__mypaper_scores, mcp__plugin_mathsecr_api__mypaper_cell_changes, mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_api__cell_detail, mcp__plugin_mathsecr_api__cell_image_link
 ---
 
 # 수학비서 문제지 조회
@@ -38,7 +38,8 @@ allowed-tools: mcp__plugin_mathsecr_api__mypaper_count, mcp__plugin_mathsecr_api
 ## 하지 않는 것
 
 - 문제지 만들기·문항 담기/교체·배점 설정·출제·학생 배포·채점·재학습지·파일 내려받기·이름 변경·삭제는 할 수 없다. 수학비서 웹에서 진행하라고 안내한다.
-- 학생별 풀이·점수·명단은 다루지 않는다(응시 학생 수 같은 집계만 있다). 문항 본문·이미지·정답·해설과 메모도 도구가 주지 않는다.
+- 학생별 풀이·점수·명단은 다루지 않는다(응시 학생 수 같은 집계만 있다). 문항 본문·정답·해설과 메모도 도구가 주지 않는다.
+- 문항 이미지를 보여 달라고 하면 `cell_image_link`(`cellId`, `curriculumId`)로 **보기 링크**를 받아 그대로 건넨다. 링크는 5분 동안 5번까지 열린다(`expiresAt`, `maxViews`). 링크를 직접 열거나 내려받지 않는다(WebFetch·브라우저 자동화 금지). 이미지는 사용자 브라우저에서만 보인다. 이용 권한이 없거나 이용할 수 없는 문항은 링크가 나오지 않는다. 정답·해설·본문 텍스트는 여전히 도구가 주지 않는다.
 - 재인증이 필요하면 `/mathsecr:status` 안내를 따른다.
 - 웹에서만 되는 일(내려받기·구매·출제 등)을 브라우저 자동화(Chrome 등)로 대신하겠다고 제안하지 않는다. 수학비서 웹에서 직접 하도록 안내만 한다.
 - 도구 정의에 있는 입력인데 "입력 형식" 오류가 나거나, "output schema" 불일치 오류가 나면 수학비서 서버가 업데이트돼 도구 정의가 바뀐 것이다. 같은 호출을 되풀이하지 말고 `/mathsecr:status` 안내대로 다시 연결하게 한다. 다시 연결한 뒤에도 같은 대화에서는 앞서 읽은 예전 정의를 따르기 쉬우니, 그 입력은 더 쓰지 않는다.
