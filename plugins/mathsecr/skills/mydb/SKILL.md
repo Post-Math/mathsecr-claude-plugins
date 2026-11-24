@@ -36,6 +36,8 @@ allowed-tools: mcp__plugin_mathsecr_api__mydb_count, mcp__plugin_mathsecr_api__m
 
 - 목록은 제목·상태·문항 수·해설 여부·등록일로 표를 만들고 `totalCount` 를 함께 말한다.
 - 문항 본문·이미지·정답은 도구가 주지 않는다. 지어내지 말고 웹에서 보라고 안내한다.
+- `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
+- `sourceId`·`source` 가 없는 DB 는 출처가 연결되지 않은 DB 다. 출처 ID 0 으로 해석하거나 지어내지 않는다.
 - `truncated`·`nestedTruncated` 가 true 면 일부라고 밝힌다.
 
 ## 하지 않는 것

@@ -32,6 +32,8 @@ allowed-tools: mcp__plugin_mathsecr_api__mypaper_count, mcp__plugin_mathsecr_api
 
 "배점 맞아?" 같은 요청은 `mypaper_detail` 의 `totalScore` 와 `mypaper_scores` 합계를 비교하고, 미설정(`null`) 문항 번호를 짚는다. "구성 어때?" 는 단원별 문항 수와 난이도 분포로 요약한다. 결과가 잘렸으면(`truncated`·`nestedTruncated`) 일부라고 밝힌다.
 
+- `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
+
 ## 하지 않는 것
 
 - 문제지 만들기·문항 담기/교체·배점 설정·출제·학생 배포·채점·재학습지·파일 내려받기·이름 변경·삭제는 할 수 없다. 수학비서 웹에서 진행하라고 안내한다.
