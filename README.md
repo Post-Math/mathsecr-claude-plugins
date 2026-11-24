@@ -6,10 +6,10 @@
 
 ```
 /plugin marketplace add Post-Math/mathsecr-claude-plugins
-/plugin install mathsecr@mathsecr
+/plugin install mathsecr@postdemy
 ```
 
-설치한 뒤 `/mcp` 에서 `mathsecr` 를 골라 **Authenticate** 를 누르면 브라우저에서 수학비서 로그인 화면이 열립니다. 로그인하고 접근을 허용하면 연결이 끝납니다. `/mathsecr:status` 로 연결된 계정을 확인할 수 있습니다.
+설치한 뒤 `/mcp` 에서 `plugin:mathsecr:api` 를 골라 **Authenticate** 를 누르면 브라우저에서 수학비서 로그인 화면이 열립니다. 로그인하고 접근을 허용하면 연결이 끝납니다. `/mathsecr:status` 로 연결된 계정을 확인할 수 있습니다.
 
 ## 설치 (Claude Desktop)
 

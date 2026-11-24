@@ -1,6 +1,6 @@
 {
-  "name": "mathsecr",
-  "owner": { "name": "Post-Math" },
+  "name": "postdemy",
+  "owner": { "name": "Postdemy" },
   "metadata": {
     "description": "수학비서 Claude Code · Claude Desktop 플러그인",
     "version": "0.1.0"
