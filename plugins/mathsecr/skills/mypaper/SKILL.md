@@ -33,6 +33,7 @@ allowed-tools: mcp__plugin_mathsecr_api__mypaper_count, mcp__plugin_mathsecr_api
 "배점 맞아?" 같은 요청은 `mypaper_detail` 의 `totalScore` 와 `mypaper_scores` 합계를 비교하고, 미설정(`null`) 문항 번호를 짚는다. "구성 어때?" 는 단원별 문항 수와 난이도 분포로 요약한다. 결과가 잘렸으면(`truncated`·`nestedTruncated`) 일부라고 밝힌다.
 
 - `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
+- 문제은행 문항(`isProblemBank: true`)은 원래 출처 목록이 비어 있다(`sources: []`, `sourceless` 없음). 출처 칸에 "문제은행"으로 적는다.
 
 ## 하지 않는 것
 
@@ -40,6 +41,6 @@ allowed-tools: mcp__plugin_mathsecr_api__mypaper_count, mcp__plugin_mathsecr_api
 - 학생별 풀이·점수·명단은 다루지 않는다(응시 학생 수 같은 집계만 있다). 문항 본문·이미지·정답·해설과 메모도 도구가 주지 않는다.
 - 재인증이 필요하면 `/mathsecr:status` 안내를 따른다.
 - 웹에서만 되는 일(내려받기·구매·출제 등)을 브라우저 자동화(Chrome 등)로 대신하겠다고 제안하지 않는다. 수학비서 웹에서 직접 하도록 안내만 한다.
-- 도구 정의에 있는 입력인데 "입력 형식" 오류가 나거나, "output schema" 불일치 오류가 나면 수학비서 서버가 업데이트돼 도구 정의가 바뀐 것이다. 같은 호출을 되풀이하지 말고 `/mathsecr:status` 안내대로 다시 연결하게 한다.
+- 도구 정의에 있는 입력인데 "입력 형식" 오류가 나거나, "output schema" 불일치 오류가 나면 수학비서 서버가 업데이트돼 도구 정의가 바뀐 것이다. 같은 호출을 되풀이하지 말고 `/mathsecr:status` 안내대로 다시 연결하게 한다. 다시 연결한 뒤에도 같은 대화에서는 앞서 읽은 예전 정의를 따르기 쉬우니, 그 입력은 더 쓰지 않는다.
 
 Claude Code 에서는 문제지 하나를 여러 번 읽어 점검하는 일을 `paper-reviewer` 에이전트에 맡기면 대화가 짧게 유지된다.

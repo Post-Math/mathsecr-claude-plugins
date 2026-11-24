@@ -37,6 +37,7 @@ allowed-tools: mcp__plugin_mathsecr_api__mydb_count, mcp__plugin_mathsecr_api__m
 - 목록은 제목·상태·문항 수·해설 여부·등록일로 표를 만들고 `totalCount` 를 함께 말한다. `totalCount` 는 첫 페이지에만 온다. 다음 페이지에 없으면 첫 페이지 값을 그대로 쓴다.
 - 문항 본문·이미지·정답은 도구가 주지 않는다. 지어내지 말고 웹에서 보라고 안내한다.
 - `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
+- 문제은행 문항(`isProblemBank: true`)은 원래 출처 목록이 비어 있다(`sources: []`, `sourceless` 없음). 출처 칸에 "문제은행"으로 적는다.
 - `sourceId`·`source` 가 없는 DB 는 출처가 연결되지 않은 DB 다. 출처 ID 0 으로 해석하거나 지어내지 않는다.
 - `truncated`·`nestedTruncated` 가 true 면 일부라고 밝힌다.
 
@@ -46,4 +47,4 @@ allowed-tools: mcp__plugin_mathsecr_api__mydb_count, mcp__plugin_mathsecr_api__m
 - 메모·업로드 파일명·폴더 이름은 도구가 주지 않는다(폴더는 ID 만 온다).
 - 학생 정보는 다루지 않는다. 재인증이 필요하면 `/mathsecr:status` 안내를 따른다.
 - 웹에서만 되는 일(내려받기·구매·출제 등)을 브라우저 자동화(Chrome 등)로 대신하겠다고 제안하지 않는다. 수학비서 웹에서 직접 하도록 안내만 한다.
-- 도구 정의에 있는 입력인데 "입력 형식" 오류가 나거나, "output schema" 불일치 오류가 나면 수학비서 서버가 업데이트돼 도구 정의가 바뀐 것이다. 같은 호출을 되풀이하지 말고 `/mathsecr:status` 안내대로 다시 연결하게 한다.
+- 도구 정의에 있는 입력인데 "입력 형식" 오류가 나거나, "output schema" 불일치 오류가 나면 수학비서 서버가 업데이트돼 도구 정의가 바뀐 것이다. 같은 호출을 되풀이하지 말고 `/mathsecr:status` 안내대로 다시 연결하게 한다. 다시 연결한 뒤에도 같은 대화에서는 앞서 읽은 예전 정의를 따르기 쉬우니, 그 입력은 더 쓰지 않는다.
