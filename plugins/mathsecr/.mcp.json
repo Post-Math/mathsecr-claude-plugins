@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "mathsecr": {
+      "type": "http",
+      "url": "https://mcp.mathsecr.com/mcp"
+    }
+  }
+}
