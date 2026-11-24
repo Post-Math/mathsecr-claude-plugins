@@ -1,7 +1,7 @@
 ---
 name: mydb
 description: 수학비서 나만의 DB 조회 — 내가 올리거나 구매한 DB(시험지·교재)의 목록·상태·문항 구성·배점·이용 권한을 본다. "내 DB 목록", "DB화 끝났어?", "○○ 기출 DB 문항 보여줘", "이 DB 몇 문항이야?", "해설 있는 DB", "상품권 남았어?" 같은 요청에 쓴다. 업로드·구매·삭제는 하지 않는다.
-allowed-tools: mcp__plugin_mathsecr_api__mydb_count, mcp__plugin_mathsecr_api__mydb_list, mcp__plugin_mathsecr_api__mydb_detail, mcp__plugin_mathsecr_api__mydb_cells, mcp__plugin_mathsecr_api__mydb_scores, mcp__plugin_mathsecr_api__mydb_purchasable, mcp__plugin_mathsecr_api__question_quota, mcp__plugin_mathsecr_api__voucher_status, mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_api__chapter_tree
+allowed-tools: mcp__plugin_mathsecr_api__mydb_count, mcp__plugin_mathsecr_api__mydb_list, mcp__plugin_mathsecr_api__mydb_detail, mcp__plugin_mathsecr_api__mydb_cells, mcp__plugin_mathsecr_api__mydb_scores, mcp__plugin_mathsecr_api__mydb_purchasable, mcp__plugin_mathsecr_api__question_quota, mcp__plugin_mathsecr_api__voucher_status, mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_api__chapter_tree, mcp__plugin_mathsecr_api__cell_image_link
 ---
 
 # 수학비서 나만의 DB 조회
@@ -35,7 +35,8 @@ allowed-tools: mcp__plugin_mathsecr_api__mydb_count, mcp__plugin_mathsecr_api__m
 ## 결과 정리
 
 - 목록은 제목·상태·문항 수·해설 여부·등록일로 표를 만들고 `totalCount` 를 함께 말한다. `totalCount` 는 첫 페이지에만 온다. 다음 페이지에 없으면 첫 페이지 값을 그대로 쓴다.
-- 문항 본문·이미지·정답은 도구가 주지 않는다. 지어내지 말고 웹에서 보라고 안내한다.
+- 문항 본문·정답은 도구가 주지 않는다. 지어내지 말고 웹에서 보라고 안내한다.
+- 문항 이미지를 보여 달라고 하면 `cell_image_link`(`cellId`, `curriculumId`)로 **보기 링크**를 받아 그대로 건넨다. 링크는 5분 동안 5번까지 열린다(`expiresAt`, `maxViews`). 링크를 직접 열거나 내려받지 않는다(WebFetch·브라우저 자동화 금지). 이미지는 사용자 브라우저에서만 보인다. 이용 권한이 없거나 이용할 수 없는 문항은 링크가 나오지 않는다. 정답·해설·본문 텍스트는 여전히 도구가 주지 않는다.
 - `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
 - 문제은행 문항(`isProblemBank: true`)은 원래 출처 목록이 비어 있다(`sources: []`, `sourceless` 없음). 출처 칸에 "문제은행"으로 적는다.
 - `sourceId`·`source` 가 없는 DB 는 출처가 연결되지 않은 DB 다. 출처 ID 0 으로 해석하거나 지어내지 않는다.

@@ -1,7 +1,7 @@
 ---
 name: questions
 description: 수학비서 문항 탐색 — 교육과정·단원·태그로 문항을 찾고 유사 문항을 본다. "이차함수 문항 찾아줘", "이 단원 중상 난이도 문항", "이 문항과 비슷한 문제", "어떤 태그가 있어?", "유사문제 검색 설정 보여줘" 같은 요청에 쓴다. 문항 메타데이터만 다루며 문제지에 담거나 바꾸지 않는다.
-allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_api__chapter_tree, mcp__plugin_mathsecr_api__cell_tag_search, mcp__plugin_mathsecr_api__cell_search, mcp__plugin_mathsecr_api__cell_detail, mcp__plugin_mathsecr_api__similar_search_setting, mcp__plugin_mathsecr_api__similar_cells, mcp__plugin_mathsecr_api__question_quota
+allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_api__chapter_tree, mcp__plugin_mathsecr_api__cell_tag_search, mcp__plugin_mathsecr_api__cell_search, mcp__plugin_mathsecr_api__cell_detail, mcp__plugin_mathsecr_api__similar_search_setting, mcp__plugin_mathsecr_api__similar_cells, mcp__plugin_mathsecr_api__question_quota, mcp__plugin_mathsecr_api__cell_image_link
 ---
 
 # 수학비서 문항 탐색
@@ -29,7 +29,8 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
 
 ## 결과 정리
 
-- 문항은 **ID·단원 경로·난이도·정답 유형·문제은행 여부**로 표를 만든다. 문항 본문·이미지·정답·해설은 도구가 주지 않는다. 지어내지 말고 "문항 내용은 수학비서 웹에서 확인해 주세요" 라고 안내한다.
+- 문항은 **ID·단원 경로·난이도·정답 유형·문제은행 여부**로 표를 만든다. 문항 본문·정답·해설은 도구가 주지 않는다. 지어내지 말고 "문항 내용은 수학비서 웹에서 확인해 주세요" 라고 안내한다.
+- 문항 이미지를 보여 달라고 하면 `cell_image_link`(`cellId`, `curriculumId`)로 **보기 링크**를 받아 그대로 건넨다. 링크는 5분 동안 5번까지 열린다(`expiresAt`, `maxViews`). 링크를 직접 열거나 내려받지 않는다(WebFetch·브라우저 자동화 금지). 이미지는 사용자 브라우저에서만 보인다. 이용 권한이 없거나 이용할 수 없는 문항은 링크가 나오지 않는다. 정답·해설·본문 텍스트는 여전히 도구가 주지 않는다.
 - `hasPermission` 이 false 거나 `isUnavailable`·`isProblemBankRemoved` 가 true 인 문항은 표에 표시해 구분한다.
 - `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
 - 문제은행 문항(`isProblemBank: true`)은 원래 출처 목록이 비어 있다(`sources: []`, `sourceless` 없음). 출처 칸에 "문제은행"으로 적는다.

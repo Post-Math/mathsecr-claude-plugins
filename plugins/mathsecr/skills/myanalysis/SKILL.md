@@ -1,7 +1,7 @@
 ---
 name: myanalysis
 description: 수학비서 분석지 조회 — 내 분석지 목록·진행 상태와 저장된 분석 결과(기준 문항별 같은문제·숫자변형·유사문제)를 본다. "내 분석지 보여줘", "분석 끝났어?", "○○ 분석지 결과 요약해줘", "기준 문항마다 유사문제 몇 개야?" 같은 요청에 쓴다. 분석을 새로 실행하거나 파일을 만들지 않는다.
-allowed-tools: mcp__plugin_mathsecr_api__myanalysis_count, mcp__plugin_mathsecr_api__myanalysis_list, mcp__plugin_mathsecr_api__myanalysis_cells, mcp__plugin_mathsecr_api__cell_detail
+allowed-tools: mcp__plugin_mathsecr_api__myanalysis_count, mcp__plugin_mathsecr_api__myanalysis_list, mcp__plugin_mathsecr_api__myanalysis_cells, mcp__plugin_mathsecr_api__cell_detail, mcp__plugin_mathsecr_api__cell_image_link
 ---
 
 # 수학비서 분석지 조회
@@ -29,7 +29,8 @@ allowed-tools: mcp__plugin_mathsecr_api__myanalysis_count, mcp__plugin_mathsecr_
 ## 결과 정리
 
 - 기준 문항별로 "같은문제 n · 숫자변형 n · 유사문제 n" 처럼 세고, 결과가 없는 기준 문항을 따로 표시한다.
-- 문항 본문·이미지·정답·해설은 도구가 주지 않는다. 지어내지 말고 웹에서 보라고 안내한다.
+- 문항 본문·정답·해설은 도구가 주지 않는다. 지어내지 말고 웹에서 보라고 안내한다.
+- 문항 이미지를 보여 달라고 하면 `cell_image_link`(`cellId`, `curriculumId`)로 **보기 링크**를 받아 그대로 건넨다. 링크는 5분 동안 5번까지 열린다(`expiresAt`, `maxViews`). 링크를 직접 열거나 내려받지 않는다(WebFetch·브라우저 자동화 금지). 이미지는 사용자 브라우저에서만 보인다. 이용 권한이 없거나 이용할 수 없는 문항은 링크가 나오지 않는다. 정답·해설·본문 텍스트는 여전히 도구가 주지 않는다.
 - `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
 - 문제은행 문항(`isProblemBank: true`)은 원래 출처 목록이 비어 있다(`sources: []`, `sourceless` 없음). 출처 칸에 "문제은행"으로 적는다.
 
