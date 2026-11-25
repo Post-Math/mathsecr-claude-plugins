@@ -11,9 +11,9 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
 ## 순서
 
 1. **교육과정 확정.** `curriculum_list` 로 교육과정 ID 를 찾는다. 사용자가 "고1", "공통수학1" 처럼 말하면 목록에서 맞는 것을 고르고, 둘 이상이면 어느 것인지 묻는다. 기본 교육과정(`is_default`)이 있으면 그것을 먼저 제안한다.
-2. **단원 확정.** `chapter_tree` 를 `curriculumId` 와 `keyword`(예: "이차함수")로 부른다. 기본은 4단계이며, 가장 깊은 5단계 단원이 필요하면 `depth: 5` 를 준다.
+2. **단원 확정.** `chapter_tree` 를 `curriculumId` 와 `keyword`(예: "이차함수")로 부른다. 기본은 4단계이며, 가장 깊은 5단계 단원이 필요하면 부모(4단계) 단원 제목을 `keyword` 로 `depth: 5` 를 준다.
    - 요청이 상위 단원의 일부라면 해당 하위 단원만 고른다. 예를 들어 "이차함수" 요청에 "이차방정식과 이차함수" 전체를 넣지 말고 이차함수 하위 단원의 tree_id를 사용한다.
-   - 응답의 `tree_id` 와 `chapter_id` 는 다른 값이다. 문항 검색 필터 `chapterTreeIds` 에는 **tree_id** 를 넣는다.
+   - 응답의 `tree_id` 와 `chapter_id` 는 다른 값이다. 문항 검색 필터 `chapterTreeIds` 에는 **tree_id** 를 넣는다. `isAlias: true` 인 별칭 단원은 문항이 원본 단원에 있으므로 `originTreeId` 를 넣는다.
    - `truncated` 가 true 면 일부만 온 것이다. `keyword` 를 좁히거나 `depth` 를 줄여 다시 부르고, 전체 트리라고 말하지 않는다.
 3. **(선택) 태그.** 개념·유형으로 거르고 싶다고 하면 `cell_tag_search` 를 `keywords` 로 부른다. 필터 없이 부르면 속성 목록을 안내한다. 고른 태그 ID 는 `cell_search` 의 `adaptiveTagIds` 로 쓴다.
 4. **검색.** `cell_search` 를 부른다. 필수는 `curriculumId` 다.
