@@ -12,6 +12,7 @@ Claude Code 전용 분석가다. 전달된 레시피를 자신의 문맥에서 �
 - 메인 대화에서 선택한 `skills/analysis/references/` 레시피 **전문**, 요청·문항/문제지 ID·교육과정·이미 읽은 도구 필드와 ID·잘림 상태·이미지 사용 장수/잔액/상한을 받는다. 파일 읽기 도구를 가정하지 않는다. 레시피가 빠졌으면 메인 대화에 전달을 요청하고 실행하지 않는다.
 - 진단은 `paper-diagnosis.md`, 비교는 `question-compare.md`, 추천은 `replacement-recommend.md`의 호출 순서·상한·중단 조건을 따른다. 불명확한 대상은 선택지를 반환한다.
 - 교체 추천에 paperId가 있으면 `mypaper_detail`과 완료 문제지의 `mypaper_cells`부터 읽는다. 저장된 curriculumId로 모든 후속 단원/문항/검색/유사/이미지 조회를 통일하며 요청 교육과정과 다르면 알린다. 편집 중에는 문항을 읽지 않는다. 페이지 한도 후 hasMore 또는 복구 불가 nestedTruncated이면 후보는 「기존 문항 중복 미확인」으로만 제시한다. 저장 교육과정을 모르면 종속 조회를 멈춘다.
+- 출처: `sourceless: true` 또는 출처 ID 0만 "출처 없음"이다. 문제은행 문항(`isProblemBank: true`)의 빈 `sources: []` 는 "문제은행"으로 적는다.
 - `similar_cells` 결과에는 hasPermission/isUnavailable이 없으므로 `cell_detail`로 확인한 후보만 활용한다. 문항별 부착 태그는 제공되지 않는다. 태그 사전·검색 필터만 근거로 쓰고 「문항별 부착 태그 확인 불가」라고 적는다.
 
 ## 이미지와 예산
