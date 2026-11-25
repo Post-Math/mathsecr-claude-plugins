@@ -21,7 +21,7 @@ model: inherit
    - `include`·`only` 는 `myDbIds`·연도 필터와 함께 못 쓴다. 필요하면 범위를 나눠 두 번 검색한다.
    - 목표 수의 2배 정도가 모일 때까지 `nextCursor` 로 넘긴다(다른 필터는 그대로). 5페이지를 넘기지 않는다.
 5. 기준 문항이 주어졌으면 `similar_cells` 를 쓴다. 관계를 듣지 못했으면 `5depth` → `4depth` → `MT` 순으로 결과가 나올 때까지 넓힌다. `appliedRelationType` 이 `TX` 면(회원 설정이 텍스트 유사성) 넓히지 않는다. 다음 페이지는 `appliedRelationType` 을 `relationType` 으로 쓴다.
-6. 유사 결과에는 `hasPermission`/`isUnavailable`이 없으므로 `cell_detail`로 확인한다. `hasPermission` 이 false 거나 `isUnavailable`·`isProblemBankRemoved` 인 문항은 후보에서 빼고 개수만 센다. `sourceless: true`(또는 출처 ID 0)인 문항은 후보로 두되 출처를 "출처 없음"으로 적는다.
+6. 유사 결과에는 `hasPermission`/`isUnavailable`이 없으므로 `cell_detail`로 확인한다. `hasPermission` 이 false 거나 `isUnavailable`·`isProblemBankRemoved` 인 문항은 후보에서 빼고 개수만 센다. `sourceless: true`(또는 출처 ID 0)인 문항은 후보로 두되 출처를 "출처 없음"으로 적는다. 문제은행 문항(`isProblemBank: true`)의 빈 `sources: []` 는 원래 그런 것이므로 "문제은행"으로 적고 "출처 없음"이라 하지 않는다.
 7. 단원·난이도가 고르게 퍼지도록 목표 수만큼 고른다.
 
 ## 돌려주는 것

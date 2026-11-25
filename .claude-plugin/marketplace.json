@@ -3,13 +3,13 @@
   "owner": { "name": "Postdemy" },
   "metadata": {
     "description": "수학비서 Claude Code · Claude Desktop 플러그인",
-    "version": "0.4.4"
+    "version": "0.4.5"
   },
   "plugins": [
     {
       "name": "mathsecr",
       "source": "./plugins/mathsecr",
-      "version": "0.4.4",
+      "version": "0.4.5",
       "description": "수학비서 계정으로 로그인해 Claude 에서 수학비서 데이터를 읽는다 (원격 MCP: mcp.mathsecr.com)",
       "author": { "name": "Post-Math" },
       "homepage": "https://mathsecr.com",
