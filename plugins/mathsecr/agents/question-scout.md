@@ -14,7 +14,7 @@ model: inherit
 ## 절차
 
 1. `curriculum_list` 로 교육과정 ID 를 정한다. 여럿이 맞으면 `is_default` 를 우선한다.
-2. `chapter_tree` 를 `keyword` 로 불러 단원의 `tree_id` 를 찾는다(`chapter_id` 아님). 잘린 결과면 `keyword` 를 좁혀 다시 부른다.
+2. `chapter_tree` 를 `keyword` 로 불러 단원의 `tree_id` 를 찾는다(`chapter_id` 아님). 잘린 결과면 `keyword` 를 좁혀 다시 부른다. 찾는 단원이 4단계 아래(5단계)에 있으면 `depth: 5` 로 1회 더 부른다.
 3. 개념·유형 조건이 있으면 `cell_tag_search` 로 태그 ID 를 찾는다.
 4. `cell_search` 로 모은다.
    - 기본값: 문제은행 포함 여부를 듣지 못했으면 `problemBankScope: "include"`, 난이도 조건이 없으면 거르지 않는다.
