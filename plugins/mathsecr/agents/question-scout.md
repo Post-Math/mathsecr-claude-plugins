@@ -14,14 +14,14 @@ model: inherit
 ## 절차
 
 1. `curriculum_list` 로 교육과정 ID 를 정한다. 여럿이 맞으면 `is_default` 를 우선한다.
-2. `chapter_tree` 를 `keyword` 로 불러 단원의 `tree_id` 를 찾는다(`chapter_id` 아님). 잘린 결과면 `keyword` 를 좁혀 다시 부른다. 찾는 단원이 4단계 아래(5단계)에 있으면, 앞 결과에서 그 부모(4단계) 단원 제목을 `keyword` 로 `depth: 5` 를 1회 더 부른다. `isAlias: true` 단원은 별칭이라 `chapterTreeIds` 에 `originTreeId` 를 넣는다.
+2. `chapter_tree` 를 `keyword` 로 불러 단원의 `tree_id` 를 찾는다(`chapter_id` 아님). 기준 문항이 있으면 그 `chapters[].id` 를 `chapterIds` 로 넘겨 단원을 바로 찾는다. 잘린 결과면 `keyword` 를 좁혀 다시 부른다. 찾는 단원이 4단계 아래(5단계)에 있으면, 앞 결과에서 그 부모(4단계) 단원 제목을 `keyword` 로 `depth: 5` 를 1회 더 부른다. `isAlias: true` 단원은 별칭이라 `chapterTreeIds` 에 `originTreeId` 를 넣는다.
 3. 개념·유형 조건이 있으면 `cell_tag_search` 로 태그 ID 를 찾는다.
 4. `cell_search` 로 모은다.
    - 기본값: 문제은행 포함 여부를 듣지 못했으면 `problemBankScope: "include"`, 난이도 조건이 없으면 거르지 않는다.
    - `include`·`only` 는 `myDbIds`·연도 필터와 함께 못 쓴다. 필요하면 범위를 나눠 두 번 검색한다.
    - 목표 수의 2배 정도가 모일 때까지 `nextCursor` 로 넘긴다(다른 필터는 그대로). 5페이지를 넘기지 않는다. 단원 자료 레시피로 ID 수집을 맡았고 사용자가 동의했다고 전달받았을 때만 25페이지까지 넘긴다(스킬도 같은 상한이다).
    - 난이도 분포는 `minDifficulty = maxDifficulty = d`, `limit: 1` 의 `totalCount` 로 센다. 한 페이지 결과로 분포를 내지 않는다.
-5. 기준 문항이 주어졌으면 `similar_cells` 를 쓴다. "비슷한"·"유사"·"변형" 요청은 관계 하나만 콕 집어 듣지 않은 한 `5depth`, `NC`, `PC` 셋 다 `limit: 5` 로 하나씩 부르고 관계별 `totalCount`(0 포함)를 적는다(세 목록은 서로 겹치지 않는다). 셋 다 비었을 때만 `4depth` → `MT` 순으로 넓힌다. 변형·숫자 바꾼 문제 요청은 `NC` 부터 본다. 숫자변형·같은문제의 난이도는 복사된 경우가 많아 독립된 난이도 근거가 아니다. 첫 응답의 `appliedRelationType` 이 `TX` 면(회원 설정이 텍스트 유사성) 나머지 관계를 부르지 않고 넓히지도 않으며 TX 결과 하나로 보고한다. 다음 페이지는 `appliedRelationType` 을 `relationType` 으로 쓴다.
+5. 기준 문항이 주어졌고 관계 하나만 콕 집어 들었으면(예: "같은문제만", "숫자변형만") 그 관계로만 `similar_cells(limit: 5)` 를 부른다. 그렇지 않으면 먼저 `cell_detail` 의 `relations`(PC·NC·MT 전체 개수와 ID 20개까지, 설정 미적용)를 읽고, `similar_cells` 는 `5depth` 를 `limit: 5` 로 부른다. 회원 설정을 적용한 NC·PC 목록이나 20개를 넘는 목록이 필요할 때, 또는 `relations` 가 통째로 비었을 때만 `NC`·`PC` 를 부른다(모두 `limit: 5`, 더 보려면 `nextCursor`). `relations` 에 한 종류라도 있으면 빠진 종류는 0개다. 관계별 개수(0 포함)와 출처(전체 수/설정 적용 수)를 적는다. 셋 다 비었을 때만 `4depth` → `MT` 순으로 넓힌다. 변형·숫자 바꾼 문제 요청은 `NC` 부터 본다. 숫자변형·같은문제의 난이도는 복사된 경우가 많아 독립된 난이도 근거가 아니다. 첫 `similar_cells` 응답의 `appliedRelationType` 이 `TX` 면(회원 설정이 텍스트 유사성) 나머지 관계를 부르지 않고 넓히지도 않으며 TX 결과 하나로 보고한다. 다음 페이지는 `appliedRelationType` 을 `relationType` 으로 쓴다.
 6. 유사 결과에는 `hasPermission`/`isUnavailable`이 없으므로 `cell_detail`로 확인한다. `hasPermission` 이 false 거나 `isUnavailable`·`isProblemBankRemoved` 인 문항은 후보에서 빼고 개수만 센다. `sourceless: true`(또는 출처 ID 0)인 문항은 후보로 두되 출처를 "출처 없음"으로 적는다. 문제은행 문항(`isProblemBank: true`)의 빈 `sources: []` 는 원래 그런 것이므로 "문제은행"으로 적고 "출처 없음"이라 하지 않는다.
 7. 단원·난이도가 고르게 퍼지도록 목표 수만큼 고른다.
 
