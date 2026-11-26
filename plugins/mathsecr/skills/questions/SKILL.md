@@ -23,6 +23,7 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
    - 요청이 상위 단원의 일부라면 해당 하위 단원만 고른다. 예를 들어 "이차함수" 요청에 "이차방정식과 이차함수" 전체를 넣지 말고 이차함수 하위 단원의 tree_id를 사용한다.
    - 응답의 `tree_id` 와 `chapter_id` 는 다른 값이다. 문항 검색 필터 `chapterTreeIds` 에는 **tree_id** 를 넣는다. `isAlias: true` 인 별칭 단원은 문항이 원본 단원에 있으므로 `originTreeId` 를 넣는다.
    - `truncated` 가 true 면 일부만 온 것이다. `keyword` 를 좁히거나 `depth` 를 줄여 다시 부르고, 전체 트리라고 말하지 않는다.
+   - 이미 아는 문항의 단원을 찾을 때는 그 문항의 `chapters[].id`(chapter_id)를 `chapter_tree(chapterIds: [...])` 로 넘긴다. 그 단원과 상위 경로의 `tree_id` 가 바로 오고(기본 5단계), 제목 대조가 필요 없다. `keyword` 와 함께 쓰지 않는다.
    - 같은 이름 단원이 둘 이상이면(예: 중3과 공통수학1) `nodePath`·`tree_id` 로 구분해 표로 보여 주고, 결과도 단원별로 나눠 센다. 하나만 고를 근거가 없으면 둘 다 검색하고 밝힌다.
 3. **(선택) 태그.** 개념·유형으로 거르고 싶다고 하면 `cell_tag_search` 를 `keywords` 로 부른다. 필터 없이 부르면 속성 목록을 안내한다. 고른 태그 ID 는 `cell_search` 의 `adaptiveTagIds` 로 쓴다.
 4. **검색.** `cell_search` 를 부른다. 필수는 `curriculumId` 다.
@@ -35,7 +36,11 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
 5. **상세·유사.** 특정 문항은 `cell_detail`(`cellId`, `curriculumId`)로 단원·난이도·권한을 확인한다. 비슷한 문항은 `similar_cells` 로 찾는다.
    - `relationType` 은 필수다. 요청에 맞춰 고른다: `PC` 같은문제, `NC` 숫자변형, `5depth` 유사문제, `4depth` 같은유형, `MT` 다른단원 유사문제.
    - 관계 목록은 서로 겹치지 않는다. `5depth` 유사문제에는 같은문제(PC)·숫자변형(NC) 문항이 들어 있지 않다.
-   - "비슷한"·"유사"·"변형"·"숫자 바꾼" 요청은 관계를 하나만 콕 집어 말하지 않는 한(예: "같은문제만") 항상 `5depth`, `NC`, `PC` **셋 다** `limit: 5` 로 하나씩 차례로 부르고, 관계별 개수(`totalCount`, 0 포함)를 표로 보여 준다. 변형·숫자 바꾼 문제 요청이면 `NC` 를 먼저 부른다. 셋 다 비었을 때만 `4depth`, `MT` 순으로 넓히고, 넓혔다고 밝힌다. 첫 응답의 `appliedRelationType` 이 `TX` 면 나머지 관계는 부르지 않고 TX 결과 하나로 보고한다.
+   - "비슷한"·"유사"·"변형"·"숫자 바꾼" 요청은 관계 하나를 콕 집어 말하지 않는 한(예: "같은문제만") 세 관계를 모두 본다.
+     1. `cell_detail` 의 `relations` 로 같은문제(PC)·숫자변형(NC)·다른 단원 유사문제(MT)의 개수와 문항 ID(종류마다 최대 20개)를 읽는다. 이 개수는 유사 검색 설정·교육과정을 적용하지 않은 전체 수다. `relations` 에 한 종류라도 있으면 빠진 종류는 0개다. 통째로 비어 있으면 관계가 없다고 단정하지 말고 2번에서 `NC`·`PC` 도 부른다.
+     2. `similar_cells` 를 `5depth`(relations 에 없는 유사문제)로 `limit: 5` 부른다. 회원 설정을 적용한 숫자변형·같은문제 목록, 20개를 넘는 목록, 문항 메타데이터(난이도·출처)가 필요할 때만 `NC`·`PC` 도 부른다. 이 단계의 `similar_cells` 는 모두 `limit: 5` 로 부른다(더 보려면 `nextCursor`). 변형·숫자 바꾼 문제 요청이면 `NC` 를 먼저 본다.
+     3. 관계별 개수(0 포함)를 표로 보여 주고, 개수마다 어느 값인지(`relations` 전체 수 / `similar_cells.totalCount` 설정 적용 수) 밝힌다.
+     4. 5depth·NC·PC 가 모두 비었을 때만 `4depth`, `MT` 순으로 넓히고, 넓혔다고 밝힌다.
    - 숫자변형·같은문제 문항의 난이도는 기준 문항에서 복사된 경우가 많다. 난이도 비교의 독립된 근거로 쓰지 않는다.
    - 결과 수는 회원의 유사 검색 설정(연도·난이도·DB 등)으로 좁혀진 값이다. 적거나 0이면 설정 때문일 수 있다고 밝힌다.
    - 회원의 검색 설정(`similar_search_setting` 의 `searchMethod`)이 `textSimilarity` 면 수학비서가 요청과 관계없이 텍스트 유사성(`TX`)으로 답한다. 응답의 `appliedRelationType` 이 `TX` 면 넓혀도 결과가 같으니 멈추고, 그렇게 검색됐다고 알린다.

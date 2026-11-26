@@ -1,0 +1,79 @@
+# 배포 PR 이 main 에 머지되면 플러그인 버전 태그(mathsecr--v<버전>)와 릴리스를 만든다.
+# - 태그 이름은 `claude plugin tag` 형식({name}--v{version})이다.
+# - 릴리스 본문은 CHANGELOG.md 의 그 버전 절이다.
+# - 이미 있는 태그는 건드리지 않는다(같은 버전을 다시 머지해도 아무 일도 하지 않음).
+# - 수동 실행(workflow_dispatch)으로 지난 버전을 지정한 커밋에 붙일 수 있다(유지 관리자만 실행 가능).
+# 공개 저장소이므로 GitHub 호스티드 러너만 사용하고, PR 코드는 실행하지 않는다(push·수동 실행만).
+name: Release tag
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "(확인용) 태그를 붙일 커밋의 버전 (예: 0.4.11). sha 와 함께 쓴다"
+        required: false
+      sha:
+        description: "지난 버전이 배포된 main 커밋 SHA (40자). 비우면 main 의 현재 커밋"
+        required: false
+
+permissions: {}
+
+# 릴리스마다 따로 줄을 세운다(같은 그룹에 셋 이상 쌓이면 기다리던 것이 취소된다).
+concurrency:
+  group: release-tag-${{ inputs.sha || github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    # main 에서만 돈다. 수동 실행으로 다른 브랜치(sync/release 등)를 골라도 아무 일도 하지 않는다.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Create tag and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IN_VERSION: ${{ inputs.version }}
+          IN_SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          sha="$GITHUB_SHA"
+          if [ -n "${IN_SHA:-}" ] || [ -n "${IN_VERSION:-}" ]; then
+            [[ "${IN_SHA:-}" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::sha 는 40자 커밋 SHA 여야 합니다"; exit 1; }
+            git merge-base --is-ancestor "$IN_SHA" origin/main || { echo "::error::sha 가 main 에 없습니다"; exit 1; }
+            sha="$IN_SHA"
+          fi
+          # 이름·버전은 태그를 붙일 커밋의 marketplace.json 에서 읽는다(입력한 버전은 확인용일 뿐이다).
+          manifest="$(git show "$sha:.claude-plugin/marketplace.json")"
+          [ "$(jq '.plugins | length' <<<"$manifest")" = 1 ] || { echo "::error::플러그인이 하나가 아닙니다"; exit 1; }
+          name="$(jq -r '.plugins[0].name' <<<"$manifest")"
+          version="$(jq -r '.plugins[0].version' <<<"$manifest")"
+          [[ "$name" =~ ^[a-z0-9-]+$ && "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::marketplace.json 이름·버전 형식 오류"; exit 1; }
+          if [ -n "${IN_VERSION:-}" ] && [ "$IN_VERSION" != "$version" ]; then
+            echo "::error::입력 버전 $IN_VERSION 이 그 커밋의 버전 $version 과 다릅니다"; exit 1
+          fi
+          tag="${name}--v${version}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "$tag 릴리스가 이미 있습니다. 건너뜁니다."
+            exit 0
+          fi
+          git show "$sha:CHANGELOG.md" 2>/dev/null | awk -v v="## $version" '
+            $0 == v { on = 1; next }
+            on && /^## / { exit }
+            on { print }
+          ' > "$RUNNER_TEMP/notes.md" || true
+          [ -s "$RUNNER_TEMP/notes.md" ] || echo "변경 기록(CHANGELOG.md)을 참고하세요." > "$RUNNER_TEMP/notes.md"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            # 태그만 있고 릴리스가 없으면 태그는 그대로 두고 릴리스만 만든다.
+            gh release create "$tag" --verify-tag --title "${name} ${version}" --notes-file "$RUNNER_TEMP/notes.md"
+          else
+            gh release create "$tag" --target "$sha" --title "${name} ${version}" --notes-file "$RUNNER_TEMP/notes.md"
+          fi
+          echo "### 릴리스: $tag" >> "$GITHUB_STEP_SUMMARY"
