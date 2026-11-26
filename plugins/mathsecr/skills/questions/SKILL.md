@@ -8,13 +8,18 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
 
 수학비서 문제은행과 회원 본인의 나만의 DB 에서 조건에 맞는 문항을 찾아 정리한다. 모든 도구는 읽기 전용이다.
 
-아래 요청은 도구를 부르기 전에 해당 레시피 전문을 먼저 읽고 그 순서·상한을 따른다.
+아래 요청은 도구를 부르기 전에 해당 레시피 전문을 먼저 읽고 그 순서·상한을 따른다. 읽을 수 없으면(권한 거부·파일 없음) 멈추지 않는다. 답 첫머리에 「레시피를 읽지 못해 기본 규칙으로 진행(제한 모드)」이라고 밝히고, 이 문서의 규칙과 아래 「제한 모드」 상한으로 진행한다. 레시피에만 있는 단계는 하지 않고 「레시피 미적용 — 미확인」으로 적는다.
 
 | 요청 | 레시피 |
 |---|---|
 | 기준 문항보다 난이도가 낮은·높은 참고 문항, 난이도 사다리 | [difficulty-ladder.md](references/difficulty-ladder.md) |
 | 단원 자료를 한꺼번에(분포·ID 목록·이미지) | [chapter-material.md](references/chapter-material.md) |
 | 수학비서에 없는 새 문제의 난이도 추정·적정성 | `analysis` 스킬의 difficulty-estimate 레시피 |
+
+제한 모드(레시피를 읽지 못했을 때, 도구 호출 합계 12회·이미지 0장):
+- 난이도 사다리: `cell_detail` 1 → `chapter_tree(chapterIds)` 1 → `cell_search`(`minDifficulty = maxDifficulty` 를 d-1, d+1 로, `limit: 5`; 비면 d±2 한 번씩) 최대 4. `relations` 의 PC·NC 와 `hasPermission` 이 true 가 아니거나 `isUnavailable`·`isProblemBankRemoved` 가 true 인 문항(문제은행 구독 필요·빠짐·권한 없음·사용 불가)은 후보에서 뺀다.
+- 단원 자료: `curriculum_list`·`chapter_tree` 합계 최대 2 → `cell_search` `limit: 1` 로 전체 수 1회와 누적 `minDifficulty` 9회(아래 4번의 분포 규칙; 합계 2+1+9 = 12) → 비용 안내. ID 목록은 받지 않는다.
+- 새 문제 난이도 추정은 `analysis` 스킬의 제한 모드를 따른다.
 
 ## 순서
 
@@ -23,24 +28,26 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
    - 요청이 상위 단원의 일부라면 해당 하위 단원만 고른다. 예를 들어 "이차함수" 요청에 "이차방정식과 이차함수" 전체를 넣지 말고 이차함수 하위 단원의 tree_id를 사용한다.
    - 응답의 `tree_id` 와 `chapter_id` 는 다른 값이다. 문항 검색 필터 `chapterTreeIds` 에는 **tree_id** 를 넣는다. `isAlias: true` 인 별칭 단원은 문항이 원본 단원에 있으므로 `originTreeId` 를 넣는다.
    - `truncated` 가 true 면 일부만 온 것이다. `keyword` 를 좁히거나 `depth` 를 줄여 다시 부르고, 전체 트리라고 말하지 않는다.
-   - 이미 아는 문항의 단원을 찾을 때는 그 문항의 `chapters[].id`(chapter_id)를 `chapter_tree(chapterIds: [...])` 로 넘긴다. 그 단원과 상위 경로의 `tree_id` 가 바로 오고(기본 5단계), 제목 대조가 필요 없다. `keyword` 와 함께 쓰지 않는다.
+   - 이미 아는 문항의 단원을 찾을 때는 그 문항의 `chapters[].id`(chapter_id)를 `chapter_tree(chapterIds: [...])` 로 넘긴다. 그 단원과 상위 경로, depth(기본 5단계)까지의 하위가 오고, depth 가 얕아도 그 단원은 온다(서버 v0.8.1 이상). 제목 대조가 필요 없다. `keyword` 와 함께 쓰지 않는다.
    - 같은 이름 단원이 둘 이상이면(예: 중3과 공통수학1) `nodePath`·`tree_id` 로 구분해 표로 보여 주고, 결과도 단원별로 나눠 센다. 하나만 고를 근거가 없으면 둘 다 검색하고 밝힌다.
 3. **(선택) 태그.** 개념·유형으로 거르고 싶다고 하면 `cell_tag_search` 를 `keywords` 로 부른다. 필터 없이 부르면 속성 목록을 안내한다. 고른 태그 ID 는 `cell_search` 의 `adaptiveTagIds` 로 쓴다.
 4. **검색.** `cell_search` 를 부른다. 필수는 `curriculumId` 다.
    - 난이도: `minDifficulty`·`maxDifficulty`. 정답 종류: `answerTypes`(`choice`·`answer`·`proof`·`boolean`).
-   - 범위: 사용자가 나만의 DB 를 지정하면 `exclude`(나만의 DB 만), 수학비서·문제은행 문항을 말하거나 범위를 말하지 않고 단원을 탐색하면 `include` 로 검색한다. 문제은행만이면 `only`. 어떤 범위로 검색했는지 항상 밝힌다.
-   - 난이도 필터는 문항의 소문항 난이도 중 **최댓값**으로 걸린다. 회원이 직접 매긴 난이도가 있으면 그 값이 수학비서 값보다 먼저다.
+   - 범위: 사용자가 나만의 DB 를 지정하면 `exclude`(나만의 DB 만), 수학비서·문제은행 문항을 말하거나 범위를 말하지 않고 단원을 탐색하면 `include` 로 검색한다. 문제은행만이면 `only`. 어떤 범위로 검색했는지 항상 밝힌다. `include` 는 구독 중일 때만 문제은행 문항을 더한다(아니면 `exclude` 와 같은 결과). `only` 는 구독이 없어도 오지만 잠긴 문항이고 `totalCount` 에 센다. 결과에 `isProblemBank: true` 가 없으면 범위를 '문제은행 포함(구독 중일 때만 반영)'이라고 적고 '문제은행에 없다'고 하지 않는다.
+   - 난이도 필터는 문항의 소문항 난이도 중 **최댓값**으로 걸린다. 소문항마다 회원 값, 없으면 수학비서 값을 쓴 최댓값이다. 난이도 없는 문항은 `minDifficulty` 를 주면 빠지고 `maxDifficulty` 만 주면 들어온다.
    - `include`·`only` 는 `myDbIds`·`sourceStartYear`·`sourceEndYear` 와 함께 쓸 수 없다. 도구가 거부하면 조건을 나눠 두 번 검색한다.
    - 더 필요하면 응답의 `nextCursor` 를 `cursor` 로 넘기고 **다른 필터는 그대로 둔다.**
-   - `totalCount` 는 첫 페이지에만 온다. 난이도 분포는 한 페이지 결과로 내지 않는다. `minDifficulty = maxDifficulty = d`, `limit: 1` 로 난이도마다 `totalCount` 를 읽고, 전체에서 합을 뺀 나머지는 「미분류」로 적는다.
+   - `limit` 은 목적에 맞춘다: 개수만 → `1`(`totalCount`), 보여 줄 후보·미리보기 → `5`, 끝까지 세거나 ID 를 모두 모을 때(열거) → `20`. 열거는 첫 페이지부터 새로 시작하고(미리보기 검색을 이어 쓰지 않는다) 페이지를 넘길 때 `limit` 을 포함한 조건을 바꾸지 않는다. 시작 전에 필요한 페이지 수(전체 수 ÷ 20, 올림)를 알리고, 5페이지를 넘으면 먼저 묻는다. 이미 정한 범위(단원·난이도·관계)를 두고 사용자가 "전부"·"모두"를 말했으면 동의로 보고 25페이지까지 간다. 단원 자료처럼 범위를 아직 좁히지 않은 "전부"는 동의가 아니다(단원 자료 레시피를 따른다). 구독 중이고 '문제은행 포함'이 켜진 계정은 문제은행 문항까지 세므로 페이지 수가 다를 수 있다. `similar_cells` 도 같다.
+   - `totalCount` 는 첫 페이지에만 온다. 난이도 분포는 한 페이지 결과로 내지 않는다. `minDifficulty = d`(`maxDifficulty` 없이), `limit: 1` 로 d=1~9 의 `totalCount` 를 읽고, d 칸 = (d 값 − d+1 값), 9 칸 = 9 값. 필터 없는 `totalCount` − (`minDifficulty = 1` 값) = 「난이도 없음」. `minDifficulty = maxDifficulty = d` 로 센 수를 더하지 않는다(같은문제 묶음이 두 칸에 들어갈 수 있다). `include` 로 센 수는 구독 상태에 따라 다르다(구독 중이 아니면 보유·공용 문항만).
 5. **상세·유사.** 특정 문항은 `cell_detail`(`cellId`, `curriculumId`)로 단원·난이도·권한을 확인한다. 비슷한 문항은 `similar_cells` 로 찾는다.
    - `relationType` 은 필수다. 요청에 맞춰 고른다: `PC` 같은문제, `NC` 숫자변형, `5depth` 유사문제, `4depth` 같은유형, `MT` 다른단원 유사문제.
    - 관계 목록은 서로 겹치지 않는다. `5depth` 유사문제에는 같은문제(PC)·숫자변형(NC) 문항이 들어 있지 않다.
-   - "비슷한"·"유사"·"변형"·"숫자 바꾼" 요청은 관계 하나를 콕 집어 말하지 않는 한(예: "같은문제만") 세 관계를 모두 본다.
-     1. `cell_detail` 의 `relations` 로 같은문제(PC)·숫자변형(NC)·다른 단원 유사문제(MT)의 개수와 문항 ID(종류마다 최대 20개)를 읽는다. 이 개수는 유사 검색 설정·교육과정을 적용하지 않은 전체 수다. `relations` 에 한 종류라도 있으면 빠진 종류는 0개다. 통째로 비어 있으면 관계가 없다고 단정하지 말고 2번에서 `NC`·`PC` 도 부른다.
-     2. `similar_cells` 를 `5depth`(relations 에 없는 유사문제)로 `limit: 5` 부른다. 회원 설정을 적용한 숫자변형·같은문제 목록, 20개를 넘는 목록, 문항 메타데이터(난이도·출처)가 필요할 때만 `NC`·`PC` 도 부른다. 이 단계의 `similar_cells` 는 모두 `limit: 5` 로 부른다(더 보려면 `nextCursor`). 변형·숫자 바꾼 문제 요청이면 `NC` 를 먼저 본다.
-     3. 관계별 개수(0 포함)를 표로 보여 주고, 개수마다 어느 값인지(`relations` 전체 수 / `similar_cells.totalCount` 설정 적용 수) 밝힌다.
-     4. 5depth·NC·PC 가 모두 비었을 때만 `4depth`, `MT` 순으로 넓히고, 넓혔다고 밝힌다.
+   - "비슷한"·"유사"·"변형"·"숫자 바꾼" 요청은 관계 하나를 콕 집어 말하지 않는 한(예: "같은문제만") 같은문제(PC)·숫자변형(NC)·유사문제(5depth)를 모두 본다.
+     1. **기준 문항.** `cell_detail` 로 기준 문항을 읽는다. 기준이 「문제은행 구독 필요」 문항(아래 「문제은행 구독」)이면 수학비서가 비슷한 문항 검색을 거절하므로 `similar_cells` 를 부르지 않고, 「문제은행 구독 필요」라고 알린 뒤 멈춘다. `relations` 는 「미리보기(보유·공용 문항, 문제은행 제외·설정 미적용, 종류별 ID 20개까지)」다. 전체 수라고 부르지 않는다. `relations` 에 없는 종류는 0개가 아니라 「미리보기 없음」이다(문제은행 문항만으로 된 관계일 수 있다).
+     2. **호출.** `similar_cells` 를 PC·NC·5depth 에 한 번씩 부른다. 목록을 보여 줄 관계(5depth, 변형·숫자 바꾼 문제 요청이면 NC)는 `limit: 5`, 개수만 필요한 관계는 `limit: 1` 로 `totalCount` 만 읽는다. 첫 응답의 `appliedRelationType` 이 `TX` 면 나머지를 부르지 않는다. 한 관계 안의 문제은행 문항 수나 전체 ID 가 필요할 때만 그 관계를 `limit: 20` 으로 처음부터 열거한다(위 4번의 열거 규칙).
+     3. **개수.** 관계별 개수(0 포함)는 `similar_cells.totalCount` 「설정 적용」으로 말한다. `relations[].count` 는 「미리보기(보유·공용)」 칸에 따로 적는다. 어느 수도 「전체」라고 부르지 않는다(목록은 「받은 n / 설정 적용 N」). 두 수를 전체·부분으로 부르지 않고, 한쪽에서 다른 쪽을 빼서 문제은행 수를 만들지 않는다. 문제은행 비중은 「받은 n개 중 isProblemBank m개」로만 적는다. 「문제은행 문항은 구독 중이고 유사 검색 설정의 '문제은행 포함'이 켜졌을 때만 이 수에 들어간다」를 함께 적는다. MT 는 `similar_cells` 를 부르지 않았으면 「설정 적용 수 미확인」이다.
+     4. **넓히기.** 5depth·NC·PC 의 `totalCount` 가 모두 0일 때만 `4depth`, `MT` 순으로 넓히고, 넓혔다고 밝힌다.
+   - 결과에 문제은행 문항이 없어도 "문제은행에 관련 문항이 없다"거나 "구독하지 않았다"고 말하지 않는다(구독·설정 중 무엇 때문인지 도구로 알 수 없다). 사용자가 문제은행 문항을 기대했는데 하나도 없을 때만 `similar_search_setting` 을 1회 읽어 '문제은행 포함' 설정을 알린다.
    - 숫자변형·같은문제 문항의 난이도는 기준 문항에서 복사된 경우가 많다. 난이도 비교의 독립된 근거로 쓰지 않는다.
    - 결과 수는 회원의 유사 검색 설정(연도·난이도·DB 등)으로 좁혀진 값이다. 적거나 0이면 설정 때문일 수 있다고 밝힌다.
    - 회원의 검색 설정(`similar_search_setting` 의 `searchMethod`)이 `textSimilarity` 면 수학비서가 요청과 관계없이 텍스트 유사성(`TX`)으로 답한다. 응답의 `appliedRelationType` 이 `TX` 면 넓혀도 결과가 같으니 멈추고, 그렇게 검색됐다고 알린다.
@@ -52,10 +59,14 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
 
 - 문항은 **ID·단원 경로·난이도·정답 유형·문제은행 여부**로 표를 만든다. 내용 확인이 필요하면 아래 이미지 경로를 쓴다.
 - 모든 표와 집계에 근거를 붙인다: `「수학비서 데이터」 도구.필드 + ID`(예: 「수학비서 데이터」 `cell_search.totalCount`, tree_id 7110). 레시피 결과도 같다.
-- `hasPermission` 이 false 거나 `isUnavailable`·`isProblemBankRemoved` 가 true 인 문항은 표에 표시해 구분한다.
+- **문제은행 구독.** 문제은행 문항은 회원의 구독 상태에 따라 열 수 있는지가 달라진다. 이 계정의 결과가 다른 계정에도 같다고 말하지 않는다. 구독 상태를 알려 주는 도구는 없으므로 구독 여부를 단정하지 않고 구독을 권하지 않는다. 확인·변경은 수학비서 웹에서 하도록 안내한다.
+  - `isProblemBank: true`·`hasPermission: false`·`isProblemBankRemoved` 가 true 아님 = 「문제은행 구독 필요」. 후보·앵커·난이도 단계·대체 추천에 쓰지 않고 `cell_image`·`cell_image_link` 를 부르지 않는다. 단원·난이도는 「잠긴 문항의 저장값」으로만 적는다.
+  - `isProblemBankRemoved: true` = 「문제은행에서 빠진 문항」. 구독과 상관없이 쓰지 않는다.
+  - 그 밖의 `hasPermission: false` = 「권한 없음」, `isUnavailable: true` = 「사용 불가」.
+  - 개수는 「쓸 수 있음 N / 열 수 없음 M(사유별)」으로 나눠 적고, 나눌 수 없으면 「잠긴 문항 포함 여부 미확인」이라고 밝힌다.
 - `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
 - 문제은행 문항(`isProblemBank: true`)은 원래 출처 목록이 비어 있다(`sources: []`, `sourceless` 없음). 출처 칸에 "문제은행"으로 적는다.
-- `totalCount` 와 실제로 받은 개수(`returnedCount`)를 함께 말한다. `truncated`·`nestedTruncated` 가 true 면 일부라고 밝힌다.
+- `totalCount` 와 실제로 받은 개수(`returnedCount`)를 함께 말한다(`similar_cells` 는 「받은 n / 설정 적용 N」). `truncated`·`nestedTruncated` 가 true 면 일부라고 밝힌다.
 - 후보가 많으면 상위 몇 개만 보이고 기준(난이도·단원 분포)을 요약한다.
 
 ## 메타데이터·이미지 판독·보기 링크
@@ -78,4 +89,4 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
 - 웹에서만 되는 일(내려받기·구매·출제 등)을 브라우저 자동화(Chrome 등)로 대신하겠다고 제안하지 않는다. 수학비서 웹에서 직접 하도록 안내만 한다.
 - 도구 정의에 있는 입력인데 "입력 형식" 오류가 나거나, "output schema" 불일치 오류가 나면 수학비서 서버가 업데이트돼 도구 정의가 바뀐 것이다. 같은 호출을 되풀이하지 말고 `/mathsecr:status` 안내대로 다시 연결하게 한다. 다시 연결한 뒤에도 같은 대화에서는 앞서 읽은 예전 정의를 따르기 쉬우니, 그 입력은 더 쓰지 않는다.
 
-Claude Code 에서는 여러 번 검색해 후보를 추리는 일, 난이도 사다리, 단원 ID 수집을 `question-scout` 에이전트에 맡기면 대화가 짧게 유지된다. 레시피를 쓸 때는 레시피 전문과 이미 읽은 조건·ID, 이미지 사용 장수·잔액·상한, 사용자가 동의한 페이지 상한을 함께 넘긴다.
+Claude Code 에서는 여러 번 검색해 후보를 추리는 일, 난이도 사다리, 단원 ID 수집을 `question-scout` 에이전트에 맡기면 대화가 짧게 유지된다. 레시피를 쓸 때는 레시피 전문과 이미 읽은 조건·ID, 이미지 사용 장수·잔액·상한, 사용자가 동의한 페이지 상한을 함께 넘긴다. 레시피를 읽지 못했으면 맡기지 않고 직접 제한 모드로 실행한다.

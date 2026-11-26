@@ -21,8 +21,8 @@ allowed-tools: mcp__plugin_mathsecr_api__mypaper_count, mcp__plugin_mathsecr_api
 
 - `mypaper_detail`(`paperId`): 진행(`progress`), 문항·해설 수, 난이도 분포, 한글 파일 생성 상태(`hmlStatus`). 총점(`totalScore`)과 배점 설정 여부(`hasScore`)는 상세에 없고 `mypaper_list` 항목에만 있다. 파일 내려받기는 제공하지 않는다.
 - `mypaper_cells`·`mypaper_pages` 는 **출제 완료 문제지만** 조회한다. 편집 중이면 도구가 거절하니 "편집 중인 문제지는 수학비서 웹에서 확인해 주세요" 라고 전한다(조회만으로도 웹이 문제지를 정리하는 동작이 있어 막아 두었다).
-  - 둘 다 `paperId` 와 `curriculumId` 가 필요하다. 모르면 `curriculum_list` 로 정한다. 응답의 `curriculumId` 는 출제 당시 보관된 값이라 요청과 다를 수 있고, 그 값을 기준으로 설명한다.
-  - `mypaper_cells`: 단원별(또는 `isNumberSorted: true` 면 번호순) 문항 메타데이터. `lockedProblemBankCount` 는 구독이 끝나 잠긴 문제은행 문항 수다.
+  - 둘 다 `paperId` 와 `curriculumId` 가 필요하다. 모르면 `curriculum_list` 로 정한다. 응답의 `curriculumId` 는 출제 당시 보관된 값이라 요청과 다를 수 있고, 그 값을 기준으로 설명한다. 다만 문항이 하나도 오지 않으면(아래 잠김 등) 응답의 `curriculumId` 는 요청값을 되돌려 준 것이라 보관된 값으로 말하지 않는다.
+  - `mypaper_cells`: 단원별(또는 `isNumberSorted: true` 면 번호순) 문항 메타데이터. `lockedProblemBankCount` 가 1 이상이면 구독이 끝나 문제은행 문항이 잠겨 출제 완료 문제지의 문항이 오지 않는다 — 빈 문제지가 아니다. 그 필드가 없거나 null 인데 문항이 오지 않으면 구독을 확인하지 못한 것일 수 있어 비었다고 단정하지 않는다. 문항 수는 `mypaper_detail` 로 적고, 확인은 수학비서 웹에서 하도록 안내한다(구독을 권하지 않는다).
   - `mypaper_pages`: 문항 사이의 개념·간지 페이지 배치(`concept`, `divider`). 전체 레이아웃이 아니며(`partialLayout`) 페이지 내용은 주지 않는다.
 - `mypaper_scores`(`paperId`): 문항별 **배점**이다. 학생 성적이 아니다. `null` 은 미설정, `0` 은 0점으로 설정한 것이다.
 - `mypaper_cell_changes`(`paperId`): 문제은행에서 바뀐 문항 수·사유와 갱신 가능 여부(`refreshable`, 막힌 이유 `blockedReason`). `cellId`는 사유가 `replaced`면 지금 원본 문제지의 문항(갱신하면 들어올 문항), 그 밖의 사유면 출제본 문항이라 `mypaper_cells`의 같은 번호와 다를 수 있다. `comparisonAvailable`이 false면 `changedCount`는 하한이다. `replaced`의 새 `cellId`가 출제본의 다른 번호에 이미 있으면 갱신 뒤 두 번호가 같은 문항이 된다고 미리 알린다. 출제 완료 문제지에서 같은 `cellId`가 두 번호에 있는 것은 같은 문제 처리 뒤 번호·배점·학생 답안 순서를 지키려고 둘 다 남긴 것일 수 있으니 오류로 보지 않는다. 바꾸려면 수학비서 웹에서 교체한다. 갱신은 하지 않는다.
@@ -34,6 +34,11 @@ allowed-tools: mcp__plugin_mathsecr_api__mypaper_count, mcp__plugin_mathsecr_api
 
 - `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
 - 문제은행 문항(`isProblemBank: true`)은 원래 출처 목록이 비어 있다(`sources: []`, `sourceless` 없음). 출처 칸에 "문제은행"으로 적는다.
+- **문제은행 구독.** 문제은행 문항은 회원의 구독 상태에 따라 열 수 있는지가 달라진다. 이 계정의 결과가 다른 계정에도 같다고 말하지 않는다. 구독 상태를 알려 주는 도구는 없으므로 구독 여부를 단정하지 않고 구독을 권하지 않는다. 확인·변경은 수학비서 웹에서 하도록 안내한다.
+  - `isProblemBank: true`·`hasPermission: false`·`isProblemBankRemoved` 가 true 아님 = 「문제은행 구독 필요」. 후보·앵커·난이도 단계·대체 추천에 쓰지 않고 `cell_image`·`cell_image_link` 를 부르지 않는다. 단원·난이도는 「잠긴 문항의 저장값」으로만 적는다.
+  - `isProblemBankRemoved: true` = 「문제은행에서 빠진 문항」. 구독과 상관없이 쓰지 않는다.
+  - 그 밖의 `hasPermission: false` = 「권한 없음」, `isUnavailable: true` = 「사용 불가」.
+  - 개수는 「쓸 수 있음 N / 열 수 없음 M(사유별)」으로 나눠 적고, 나눌 수 없으면 「잠긴 문항 포함 여부 미확인」이라고 밝힌다.
 
 ## 메타데이터·이미지 판독·보기 링크
 
