@@ -25,7 +25,7 @@ allowed-tools: mcp__plugin_mathsecr_api__mypaper_count, mcp__plugin_mathsecr_api
   - `mypaper_cells`: 단원별(또는 `isNumberSorted: true` 면 번호순) 문항 메타데이터. `lockedProblemBankCount` 는 구독이 끝나 잠긴 문제은행 문항 수다.
   - `mypaper_pages`: 문항 사이의 개념·간지 페이지 배치(`concept`, `divider`). 전체 레이아웃이 아니며(`partialLayout`) 페이지 내용은 주지 않는다.
 - `mypaper_scores`(`paperId`): 문항별 **배점**이다. 학생 성적이 아니다. `null` 은 미설정, `0` 은 0점으로 설정한 것이다.
-- `mypaper_cell_changes`(`paperId`): 문제은행에서 바뀐 문항 수·사유와 갱신 가능 여부(`refreshable`, 막힌 이유 `blockedReason`). `cellId`는 사유가 `replaced`면 지금 원본 문제지의 문항(갱신하면 들어올 문항), 그 밖의 사유면 출제본 문항이라 `mypaper_cells`의 같은 번호와 다를 수 있다. `comparisonAvailable`이 false면 `changedCount`는 하한이다. 갱신은 하지 않는다.
+- `mypaper_cell_changes`(`paperId`): 문제은행에서 바뀐 문항 수·사유와 갱신 가능 여부(`refreshable`, 막힌 이유 `blockedReason`). `cellId`는 사유가 `replaced`면 지금 원본 문제지의 문항(갱신하면 들어올 문항), 그 밖의 사유면 출제본 문항이라 `mypaper_cells`의 같은 번호와 다를 수 있다. `comparisonAvailable`이 false면 `changedCount`는 하한이다. `replaced`의 새 `cellId`가 출제본의 다른 번호에 이미 있으면 갱신 뒤 두 번호가 같은 문항이 된다고 미리 알린다. 출제 완료 문제지에서 같은 `cellId`가 두 번호에 있는 것은 같은 문제 처리 뒤 번호·배점·학생 답안 순서를 지키려고 둘 다 남긴 것일 수 있으니 오류로 보지 않는다. 바꾸려면 수학비서 웹에서 교체한다. 갱신은 하지 않는다.
 - 특정 문항의 단원·난이도는 `cell_detail` 로 확인한다.
 
 ## 점검 요청에 답하는 법

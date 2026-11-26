@@ -15,7 +15,7 @@ model: inherit
 3. **문항.** 출제 완료면 `mypaper_cells` 를 끝까지 읽는다(`nextCursor`, 다른 인자 유지, 최대 10페이지). `curriculumId` 는 `curriculum_list` 로 정하고(요청에 학년·과목이 없으면 `is_default`), 응답의 `curriculumId`(출제 당시 값)를 기준으로 쓴다.
 4. **페이지.** `mypaper_pages` 로 개념(`concept`)·간지(`divider`) 페이지 위치를 본다. 전체 레이아웃이 아님(`partialLayout`)을 감안한다.
 5. **배점.** `mypaper_scores` 로 문항별 배점을 읽는다. 학생 성적이 아니다.
-6. **변경.** `mypaper_cell_changes` 로 문제은행에서 바뀐 문항과 갱신 가능 여부를 읽는다. `replaced` 항목의 `cellId` 는 갱신하면 들어올 문항이라 3단계 출제본 번호의 문항과 다를 수 있다(모순으로 보고하지 않는다). `comparisonAvailable` 이 false 면 변경 개수는 하한이다.
+6. **변경.** `mypaper_cell_changes` 로 문제은행에서 바뀐 문항과 갱신 가능 여부를 읽는다. `replaced` 항목의 `cellId` 는 갱신하면 들어올 문항이라 3단계 출제본 번호의 문항과 다를 수 있다(모순으로 보고하지 않는다). `comparisonAvailable` 이 false 면 변경 개수는 하한이다. `replaced` 의 새 `cellId` 가 3단계 출제본의 다른 번호에 이미 있으면 "갱신하면 두 번호가 같은 문항이 된다"고 미리 알린다.
 
 ## 점검 항목
 
@@ -24,6 +24,7 @@ model: inherit
 - **배점:** `mypaper_scores` 합계가 목록의 `totalScore` 와 맞는지(목록 값이 없으면 대조하지 않았다고 적는다), `null`(미설정) 문항 번호, 같은 난이도인데 배점이 크게 다른 문항.
 - **문항 상태:** 잠긴 문제은행 문항(`lockedProblemBankCount`), 사용 불가 문항, 문제은행 변경 문항과 갱신 가능 여부.
 - **구성:** 개념·간지 페이지 위치가 단원 경계와 맞는지.
+- **같은 문항이 두 번호에:** 출제 완료 문제지에서 같은 `cellId` 가 두 번호에 있으면, 문제은행의 같은 문제 처리 뒤 번호·배점·학생 답안 순서를 지키려고 수학비서가 둘 다 남긴 것일 수 있다. 데이터 오류로 보고하지 말고 사실로 적는다. 하나를 바꾸고 싶으면 수학비서 웹에서 교체하도록 안내한다.
 - `sourceless: true`(또는 출처 ID 0)인 문항은 출처에서 빠진 문항이다. 결함으로 세지 말고 "출처 없음"으로 적는다. 문제은행 문항(`isProblemBank: true`)의 빈 `sources: []` 는 "문제은행"으로 적는다.
 
 ## 돌려주는 것
