@@ -19,13 +19,13 @@ allowed-tools: mcp__plugin_mathsecr_api__mypaper_count, mcp__plugin_mathsecr_api
 
 ## 문제지 살펴보기
 
-- `mypaper_detail`(`paperId`): 진행(`progress`), 문항·해설 수, 난이도 분포, 배점 설정 여부와 합계, 한글 파일 생성 상태(`hmlStatus`). 파일 내려받기는 제공하지 않는다.
+- `mypaper_detail`(`paperId`): 진행(`progress`), 문항·해설 수, 난이도 분포, 한글 파일 생성 상태(`hmlStatus`). 총점(`totalScore`)과 배점 설정 여부(`hasScore`)는 상세에 없고 `mypaper_list` 항목에만 있다. 파일 내려받기는 제공하지 않는다.
 - `mypaper_cells`·`mypaper_pages` 는 **출제 완료 문제지만** 조회한다. 편집 중이면 도구가 거절하니 "편집 중인 문제지는 수학비서 웹에서 확인해 주세요" 라고 전한다(조회만으로도 웹이 문제지를 정리하는 동작이 있어 막아 두었다).
   - 둘 다 `paperId` 와 `curriculumId` 가 필요하다. 모르면 `curriculum_list` 로 정한다. 응답의 `curriculumId` 는 출제 당시 보관된 값이라 요청과 다를 수 있고, 그 값을 기준으로 설명한다.
   - `mypaper_cells`: 단원별(또는 `isNumberSorted: true` 면 번호순) 문항 메타데이터. `lockedProblemBankCount` 는 구독이 끝나 잠긴 문제은행 문항 수다.
   - `mypaper_pages`: 문항 사이의 개념·간지 페이지 배치(`concept`, `divider`). 전체 레이아웃이 아니며(`partialLayout`) 페이지 내용은 주지 않는다.
 - `mypaper_scores`(`paperId`): 문항별 **배점**이다. 학생 성적이 아니다. `null` 은 미설정, `0` 은 0점으로 설정한 것이다.
-- `mypaper_cell_changes`(`paperId`): 문제은행에서 바뀐 문항 수·사유와 갱신 가능 여부(`refreshable`, 막힌 이유 `blockedReason`). 갱신은 하지 않는다.
+- `mypaper_cell_changes`(`paperId`): 문제은행에서 바뀐 문항 수·사유와 갱신 가능 여부(`refreshable`, 막힌 이유 `blockedReason`). `cellId`는 사유가 `replaced`면 지금 원본 문제지의 문항(갱신하면 들어올 문항), 그 밖의 사유면 출제본 문항이라 `mypaper_cells`의 같은 번호와 다를 수 있다. `comparisonAvailable`이 false면 `changedCount`는 하한이다. 갱신은 하지 않는다.
 - 특정 문항의 단원·난이도는 `cell_detail` 로 확인한다.
 
 ## 점검 요청에 답하는 법
