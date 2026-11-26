@@ -24,6 +24,7 @@ allowed-tools: mcp__plugin_mathsecr_api__myanalysis_count, mcp__plugin_mathsecr_
   - `standardLimit`(기준 문항 수, 최대 20)과 `resultLimit`(기준 문항당 결과 수, 최대 5)은 **출력 상한이지 페이지가 아니다.** 커서가 없으므로 더 많이 보려면 상한을 올려 다시 부른다.
   - `resultsOmittedCount` 는 그 기준 문항에서 생략된 결과 수다. `truncated`·`nestedTruncated` 가 true 면 일부라고 밝힌다.
 - 분석이 끝나지 않았으면(`analysisStatus` 가 `analyzing`) 결과가 비어 있을 수 있다고 알린다.
+- 기준 문항과 결과 문항의 `answerMetadata` 난이도를 나란히 보면 "비슷한 수학비서 문항은 몇 난이도인가"를 답할 수 있다. 비교 대상은 분석할 때 고른 DB·문제지 안의 문항뿐이라고 밝힌다. 숫자변형(`NC`)·같은문제(`PC`) 결과의 난이도는 복사된 경우가 많아 독립된 근거가 아니다. 저장 난이도의 출처(담당자 입력·복사·기본값)는 데이터에 없다.
 - 특정 문항의 단원·난이도는 `cell_detail`(`cellId`, `curriculumId` — 분석지의 `curriculumId` 사용)로 확인한다.
 
 ## 결과 정리

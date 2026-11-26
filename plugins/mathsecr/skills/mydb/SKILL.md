@@ -21,7 +21,8 @@ allowed-tools: mcp__plugin_mathsecr_api__mydb_count, mcp__plugin_mathsecr_api__m
 ## DB 살펴보기
 
 - `mydb_detail`(`dbId`): 진행 상태(`progress`, `dbStatus`), 문항 수, 난이도 분포(`difficultyCount`, `averageDifficulty`), 구매 가능 여부. 해설 수와 정답·해설 보유(`explanationCount`, `isAnswer`, `isExplanation`)는 상세에 없다. `mydb_list` 의 같은 DB 항목에서 읽는다.
-- `mydb_cells`(`dbId`, `curriculumId`): 쪽별 문항 메타데이터(단원·난이도·정답 유형).
+- `mydb_cells`(`dbId`, `curriculumId`): 쪽별 문항 메타데이터(단원·난이도·정답 유형). `minDifficulty`·`maxDifficulty` 로 거를 수 있다.
+- 난이도 메모: `difficultyCount` 는 1~2 쉬움, 3~4 보통, 5~6 어려움, 7 이상 매우 어려움으로 묶은 값이고, 난이도가 없는 문항도 보통으로 셈한다(수학비서 집계 기준). 처리 중(`dbProcessing`)인 DB 의 `difficultyCount` 는 아직 난이도가 없는 문항까지 보통으로 센 값일 수 있으니, 문항별 값은 `mydb_cells` 로 확인한다. 저장 난이도는 담당자 입력값, 연결된 문항에서 복사된 값, 또는 기본값(4)일 수 있고 어느 쪽인지는 데이터에 없다. 그렇게 밝히고 Claude 가 매긴 값처럼 쓰지 않는다.
   - `curriculumId` 가 필요하다. 모르면 `curriculum_list` 로 정한다. 단원으로 거르려면 `chapter_tree` 의 `tree_id` 를 `chapterTreeIds` 로 넘긴다.
   - 쪽만 보려면 `pageNumbers`. 커서는 문항 단위다.
 - `mydb_scores`(`dbId`): 문항별 **배점**이다. 학생 성적이 아니다. `null` 은 배점 미설정이다.

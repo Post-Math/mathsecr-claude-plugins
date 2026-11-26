@@ -1,6 +1,6 @@
 ---
 name: analysis
-description: 수학비서 데이터 분석 — "문제지 진단해줘", "두 문항 비교해줘", "대체 문항 추천해줘". 저장 정보와 필요한 이미지 판독으로 근거를 정리한다.
+description: 수학비서 데이터 분석 — "문제지 진단해줘", "두 문항 비교해줘", "대체 문항 추천해줘", "내가 만든 문제 난이도 몇이야". 저장 정보와 필요한 이미지 판독으로 근거를 정리한다.
 allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_api__chapter_tree, mcp__plugin_mathsecr_api__cell_tag_search, mcp__plugin_mathsecr_api__cell_search, mcp__plugin_mathsecr_api__cell_detail, mcp__plugin_mathsecr_api__similar_search_setting, mcp__plugin_mathsecr_api__similar_cells, mcp__plugin_mathsecr_api__mypaper_list, mcp__plugin_mathsecr_api__mypaper_detail, mcp__plugin_mathsecr_api__mypaper_cells, mcp__plugin_mathsecr_api__mypaper_scores, mcp__plugin_mathsecr_api__cell_image, mcp__plugin_mathsecr_api__cell_image_link
 ---
 
@@ -15,11 +15,14 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
 | 문제지 진단 | [paper-diagnosis.md](references/paper-diagnosis.md) |
 | 두 문항 비교 | [question-compare.md](references/question-compare.md) |
 | 대체 문항 추천 | [replacement-recommend.md](references/replacement-recommend.md) |
+| 새로 만든 문제(수학비서에 없는 문제)의 난이도 추정·목표 난이도 적정성 | [difficulty-estimate.md](references/difficulty-estimate.md) |
+
+수학비서 문항 ID 를 기준으로 쉬운·어려운 참고 문항을 찾는 요청은 `questions` 스킬의 난이도 사다리 레시피다.
 
 ## 실행과 근거
 
 - Desktop Chat에서는 스킬이 레시피를 직접 실행한다. Claude Code에서는 `math-analyst`에 선택한 **레시피 전문**, 요청·ID·교육과정·이미 읽은 필드와 출처·잘림 상태·이미지 사용 장수와 잔액·상한을 전달한다. 에이전트가 없으면 직접 실행한다. 에이전트에 파일 읽기 도구가 있다고 가정하지 않는다.
-- 모든 사실·집계에 `「수학비서 데이터」 도구.필드, paperId/cellId/단원 ID`를 붙인다. 집계는 분모·범위·계산 방식을 적고, 권장·평가에는 **Claude 제안**이라고 명시하여 저장된 평가로 오인시키지 않는다. 이미지 판단은 `「이미지 판독(Claude 해석)」 cellId, part, 판독 주체`로 구분한다. 판독하지 않은 내용은 미확인이다.
+- 모든 사실·집계에 `「수학비서 데이터」 도구.필드, paperId/cellId/단원 ID`를 붙인다. 집계는 분모·범위·계산 방식을 적고, 권장·평가에는 **Claude 제안**이라고 명시하여 저장된 평가로 오인시키지 않는다. 새 문제의 난이도 추정은 「Claude 추정 — 수학비서 난이도 아님」으로 적는다. 이미지 판단은 `「이미지 판독(Claude 해석)」 cellId, part, 판독 주체`로 구분한다. 판독하지 않은 내용은 미확인이다.
 - 태그 사전과 `cell_search.adaptiveTagIds` 검색 조건만 근거로 쓴다. **「문항별 부착 태그 확인 불가」**를 표시한다. `similar_cells` 결과에는 `hasPermission`/`isUnavailable`이 없으므로 채택 전에 `cell_detail`로 확인한다.
 - 문제은행 문항의 빈 `sources`는 "문제은행"으로 적는다. `sourceless: true` 또는 출처 ID 0만 "출처 없음"이다. 누락·null 필드는 추정하지 않는다.
 
