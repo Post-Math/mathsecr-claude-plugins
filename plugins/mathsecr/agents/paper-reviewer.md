@@ -15,7 +15,7 @@ model: inherit
 3. **문항.** 출제 완료면 `mypaper_cells` 를 끝까지 읽는다(`nextCursor`, 다른 인자 유지, 최대 10페이지). `curriculumId` 는 `curriculum_list` 로 정하고(요청에 학년·과목이 없으면 `is_default`), 응답의 `curriculumId`(출제 당시 값)를 기준으로 쓴다.
 4. **페이지.** `mypaper_pages` 로 개념(`concept`)·간지(`divider`) 페이지 위치를 본다. 전체 레이아웃이 아님(`partialLayout`)을 감안한다.
 5. **배점.** `mypaper_scores` 로 문항별 배점을 읽는다. 학생 성적이 아니다.
-6. **변경.** `mypaper_cell_changes` 로 문제은행에서 바뀐 문항과 갱신 가능 여부를 읽는다.
+6. **변경.** `mypaper_cell_changes` 로 문제은행에서 바뀐 문항과 갱신 가능 여부를 읽는다. `replaced` 항목의 `cellId` 는 갱신하면 들어올 문항이라 3단계 출제본 번호의 문항과 다를 수 있다(모순으로 보고하지 않는다). `comparisonAvailable` 이 false 면 변경 개수는 하한이다.
 
 ## 점검 항목
 
