@@ -1,12 +1,20 @@
 ---
 name: questions
-description: 수학비서 문항 탐색 — "이차함수 문항 찾아줘", "비슷한 문제 찾아줘". 메타데이터 조회, "읽어줘" 이미지 판독, "보여줘" 보기 링크.
+description: 수학비서 문항 탐색 — "이차함수 문항 찾아줘", "비슷한 문제·숫자변형 찾아줘", "난이도 낮은/높은 참고 문항", "단원 자료 전부". 메타데이터 조회, "읽어줘" 이미지 판독, "보여줘" 보기 링크.
 allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_api__chapter_tree, mcp__plugin_mathsecr_api__cell_tag_search, mcp__plugin_mathsecr_api__cell_search, mcp__plugin_mathsecr_api__cell_detail, mcp__plugin_mathsecr_api__similar_search_setting, mcp__plugin_mathsecr_api__similar_cells, mcp__plugin_mathsecr_api__question_quota, mcp__plugin_mathsecr_api__cell_image_link, mcp__plugin_mathsecr_api__cell_image
 ---
 
 # 수학비서 문항 탐색
 
 수학비서 문제은행과 회원 본인의 나만의 DB 에서 조건에 맞는 문항을 찾아 정리한다. 모든 도구는 읽기 전용이다.
+
+아래 요청은 도구를 부르기 전에 해당 레시피 전문을 먼저 읽고 그 순서·상한을 따른다.
+
+| 요청 | 레시피 |
+|---|---|
+| 기준 문항보다 난이도가 낮은·높은 참고 문항, 난이도 사다리 | [difficulty-ladder.md](references/difficulty-ladder.md) |
+| 단원 자료를 한꺼번에(분포·ID 목록·이미지) | [chapter-material.md](references/chapter-material.md) |
+| 수학비서에 없는 새 문제의 난이도 추정·적정성 | `analysis` 스킬의 difficulty-estimate 레시피 |
 
 ## 순서
 
@@ -15,15 +23,21 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
    - 요청이 상위 단원의 일부라면 해당 하위 단원만 고른다. 예를 들어 "이차함수" 요청에 "이차방정식과 이차함수" 전체를 넣지 말고 이차함수 하위 단원의 tree_id를 사용한다.
    - 응답의 `tree_id` 와 `chapter_id` 는 다른 값이다. 문항 검색 필터 `chapterTreeIds` 에는 **tree_id** 를 넣는다. `isAlias: true` 인 별칭 단원은 문항이 원본 단원에 있으므로 `originTreeId` 를 넣는다.
    - `truncated` 가 true 면 일부만 온 것이다. `keyword` 를 좁히거나 `depth` 를 줄여 다시 부르고, 전체 트리라고 말하지 않는다.
+   - 같은 이름 단원이 둘 이상이면(예: 중3과 공통수학1) `nodePath`·`tree_id` 로 구분해 표로 보여 주고, 결과도 단원별로 나눠 센다. 하나만 고를 근거가 없으면 둘 다 검색하고 밝힌다.
 3. **(선택) 태그.** 개념·유형으로 거르고 싶다고 하면 `cell_tag_search` 를 `keywords` 로 부른다. 필터 없이 부르면 속성 목록을 안내한다. 고른 태그 ID 는 `cell_search` 의 `adaptiveTagIds` 로 쓴다.
 4. **검색.** `cell_search` 를 부른다. 필수는 `curriculumId` 다.
    - 난이도: `minDifficulty`·`maxDifficulty`. 정답 종류: `answerTypes`(`choice`·`answer`·`proof`·`boolean`).
-   - 범위: `problemBankScope` 기본값은 `exclude`(나만의 DB 만)다. 문제은행을 포함하려면 `include`, 문제은행만이면 `only`.
+   - 범위: 사용자가 나만의 DB 를 지정하면 `exclude`(나만의 DB 만), 수학비서·문제은행 문항을 말하거나 범위를 말하지 않고 단원을 탐색하면 `include` 로 검색한다. 문제은행만이면 `only`. 어떤 범위로 검색했는지 항상 밝힌다.
+   - 난이도 필터는 문항의 소문항 난이도 중 **최댓값**으로 걸린다. 회원이 직접 매긴 난이도가 있으면 그 값이 수학비서 값보다 먼저다.
    - `include`·`only` 는 `myDbIds`·`sourceStartYear`·`sourceEndYear` 와 함께 쓸 수 없다. 도구가 거부하면 조건을 나눠 두 번 검색한다.
    - 더 필요하면 응답의 `nextCursor` 를 `cursor` 로 넘기고 **다른 필터는 그대로 둔다.**
+   - `totalCount` 는 첫 페이지에만 온다. 난이도 분포는 한 페이지 결과로 내지 않는다. `minDifficulty = maxDifficulty = d`, `limit: 1` 로 난이도마다 `totalCount` 를 읽고, 전체에서 합을 뺀 나머지는 「미분류」로 적는다.
 5. **상세·유사.** 특정 문항은 `cell_detail`(`cellId`, `curriculumId`)로 단원·난이도·권한을 확인한다. 비슷한 문항은 `similar_cells` 로 찾는다.
    - `relationType` 은 필수다. 요청에 맞춰 고른다: `PC` 같은문제, `NC` 숫자변형, `5depth` 유사문제, `4depth` 같은유형, `MT` 다른단원 유사문제.
-   - 사용자가 정하지 않았으면 `5depth` 로 시작해 결과가 없을 때만 `4depth`, `MT` 순으로 넓히고, 넓혔다고 밝힌다.
+   - 관계 목록은 서로 겹치지 않는다. `5depth` 유사문제에는 같은문제(PC)·숫자변형(NC) 문항이 들어 있지 않다.
+   - "비슷한"·"유사"·"변형"·"숫자 바꾼" 요청은 관계를 하나만 콕 집어 말하지 않는 한(예: "같은문제만") 항상 `5depth`, `NC`, `PC` **셋 다** `limit: 5` 로 하나씩 차례로 부르고, 관계별 개수(`totalCount`, 0 포함)를 표로 보여 준다. 변형·숫자 바꾼 문제 요청이면 `NC` 를 먼저 부른다. 셋 다 비었을 때만 `4depth`, `MT` 순으로 넓히고, 넓혔다고 밝힌다. 첫 응답의 `appliedRelationType` 이 `TX` 면 나머지 관계는 부르지 않고 TX 결과 하나로 보고한다.
+   - 숫자변형·같은문제 문항의 난이도는 기준 문항에서 복사된 경우가 많다. 난이도 비교의 독립된 근거로 쓰지 않는다.
+   - 결과 수는 회원의 유사 검색 설정(연도·난이도·DB 등)으로 좁혀진 값이다. 적거나 0이면 설정 때문일 수 있다고 밝힌다.
    - 회원의 검색 설정(`similar_search_setting` 의 `searchMethod`)이 `textSimilarity` 면 수학비서가 요청과 관계없이 텍스트 유사성(`TX`)으로 답한다. 응답의 `appliedRelationType` 이 `TX` 면 넓혀도 결과가 같으니 멈추고, 그렇게 검색됐다고 알린다.
    - 다음 페이지는 응답의 `appliedRelationType` 을 `relationType` 으로 쓰고 같은 필터와 `nextCursor` 를 넘긴다.
    - 태그 사전과 검색 필터의 근거만 제시하고 「문항별 부착 태그 확인 불가」를 적는다. 문항별 태그를 추측하지 않는다.
@@ -32,6 +46,7 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
 ## 결과 정리
 
 - 문항은 **ID·단원 경로·난이도·정답 유형·문제은행 여부**로 표를 만든다. 내용 확인이 필요하면 아래 이미지 경로를 쓴다.
+- 모든 표와 집계에 근거를 붙인다: `「수학비서 데이터」 도구.필드 + ID`(예: 「수학비서 데이터」 `cell_search.totalCount`, tree_id 7110). 레시피 결과도 같다.
 - `hasPermission` 이 false 거나 `isUnavailable`·`isProblemBankRemoved` 가 true 인 문항은 표에 표시해 구분한다.
 - `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
 - 문제은행 문항(`isProblemBank: true`)은 원래 출처 목록이 비어 있다(`sources: []`, `sourceless` 없음). 출처 칸에 "문제은행"으로 적는다.
@@ -58,4 +73,4 @@ allowed-tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_a
 - 웹에서만 되는 일(내려받기·구매·출제 등)을 브라우저 자동화(Chrome 등)로 대신하겠다고 제안하지 않는다. 수학비서 웹에서 직접 하도록 안내만 한다.
 - 도구 정의에 있는 입력인데 "입력 형식" 오류가 나거나, "output schema" 불일치 오류가 나면 수학비서 서버가 업데이트돼 도구 정의가 바뀐 것이다. 같은 호출을 되풀이하지 말고 `/mathsecr:status` 안내대로 다시 연결하게 한다. 다시 연결한 뒤에도 같은 대화에서는 앞서 읽은 예전 정의를 따르기 쉬우니, 그 입력은 더 쓰지 않는다.
 
-Claude Code 에서는 여러 번 검색해 후보를 추리는 일을 `question-scout` 에이전트에 맡기면 대화가 짧게 유지된다.
+Claude Code 에서는 여러 번 검색해 후보를 추리는 일, 난이도 사다리, 단원 ID 수집을 `question-scout` 에이전트에 맡기면 대화가 짧게 유지된다. 레시피를 쓸 때는 레시피 전문과 이미 읽은 조건·ID, 이미지 사용 장수·잔액·상한, 사용자가 동의한 페이지 상한을 함께 넘긴다.

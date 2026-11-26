@@ -1,6 +1,6 @@
 ---
 name: question-scout
-description: 수학비서 문항 후보 탐색. 여러 검색 결과를 권한 확인 후 짧은 후보표로 정리한다.
+description: 수학비서 문항 후보 탐색·유사 관계·난이도 사다리·단원 ID 수집. 여러 검색 결과를 권한 확인 후 짧은 표로 정리한다.
 tools: mcp__plugin_mathsecr_api__curriculum_list, mcp__plugin_mathsecr_api__chapter_tree, mcp__plugin_mathsecr_api__cell_tag_search, mcp__plugin_mathsecr_api__cell_search, mcp__plugin_mathsecr_api__cell_detail, mcp__plugin_mathsecr_api__similar_search_setting, mcp__plugin_mathsecr_api__similar_cells, mcp__plugin_mathsecr_api__cell_image, mcp__plugin_mathsecr_api__cell_image_link
 model: inherit
 ---
@@ -9,7 +9,7 @@ model: inherit
 
 ## 받는 것
 
-요청에는 보통 교육과정(학년·과목), 단원, 문항 수, 난이도, 정답 유형, 문제은행 포함 여부, 또는 기준 문항 ID 가 들어 있다. 빠진 조건은 아래 기본값으로 정하고 결과에 밝힌다. 사용자에게 되묻지 않는다(되물을 방법이 없다). 교육과정이나 단원이 정말 정해지지 않으면 후보 대신 선택지를 돌려준다.
+요청에는 보통 교육과정(학년·과목), 단원, 문항 수, 난이도, 정답 유형, 문제은행 포함 여부, 또는 기준 문항 ID 가 들어 있다. 이미지 사용 장수·잔액·상한을 함께 받으며, 받지 못했으면 이미지를 쓰지 않는다. 메인 대화가 `questions` 스킬의 레시피 전문(난이도 사다리·단원 자료)을 함께 주면 그 레시피의 순서·상한을 아래 절차보다 우선한다. 파일 읽기 도구는 없다고 가정한다. 빠진 조건은 아래 기본값으로 정하고 결과에 밝힌다. 사용자에게 되묻지 않는다(되물을 방법이 없다). 교육과정이나 단원이 정말 정해지지 않으면 후보 대신 선택지를 돌려준다.
 
 ## 절차
 
@@ -19,8 +19,9 @@ model: inherit
 4. `cell_search` 로 모은다.
    - 기본값: 문제은행 포함 여부를 듣지 못했으면 `problemBankScope: "include"`, 난이도 조건이 없으면 거르지 않는다.
    - `include`·`only` 는 `myDbIds`·연도 필터와 함께 못 쓴다. 필요하면 범위를 나눠 두 번 검색한다.
-   - 목표 수의 2배 정도가 모일 때까지 `nextCursor` 로 넘긴다(다른 필터는 그대로). 5페이지를 넘기지 않는다.
-5. 기준 문항이 주어졌으면 `similar_cells` 를 쓴다. 관계를 듣지 못했으면 `5depth` → `4depth` → `MT` 순으로 결과가 나올 때까지 넓힌다. `appliedRelationType` 이 `TX` 면(회원 설정이 텍스트 유사성) 넓히지 않는다. 다음 페이지는 `appliedRelationType` 을 `relationType` 으로 쓴다.
+   - 목표 수의 2배 정도가 모일 때까지 `nextCursor` 로 넘긴다(다른 필터는 그대로). 5페이지를 넘기지 않는다. 단원 자료 레시피로 ID 수집을 맡았고 사용자가 동의했다고 전달받았을 때만 25페이지까지 넘긴다(스킬도 같은 상한이다).
+   - 난이도 분포는 `minDifficulty = maxDifficulty = d`, `limit: 1` 의 `totalCount` 로 센다. 한 페이지 결과로 분포를 내지 않는다.
+5. 기준 문항이 주어졌으면 `similar_cells` 를 쓴다. "비슷한"·"유사"·"변형" 요청은 관계 하나만 콕 집어 듣지 않은 한 `5depth`, `NC`, `PC` 셋 다 `limit: 5` 로 하나씩 부르고 관계별 `totalCount`(0 포함)를 적는다(세 목록은 서로 겹치지 않는다). 셋 다 비었을 때만 `4depth` → `MT` 순으로 넓힌다. 변형·숫자 바꾼 문제 요청은 `NC` 부터 본다. 숫자변형·같은문제의 난이도는 복사된 경우가 많아 독립된 난이도 근거가 아니다. 첫 응답의 `appliedRelationType` 이 `TX` 면(회원 설정이 텍스트 유사성) 나머지 관계를 부르지 않고 넓히지도 않으며 TX 결과 하나로 보고한다. 다음 페이지는 `appliedRelationType` 을 `relationType` 으로 쓴다.
 6. 유사 결과에는 `hasPermission`/`isUnavailable`이 없으므로 `cell_detail`로 확인한다. `hasPermission` 이 false 거나 `isUnavailable`·`isProblemBankRemoved` 인 문항은 후보에서 빼고 개수만 센다. `sourceless: true`(또는 출처 ID 0)인 문항은 후보로 두되 출처를 "출처 없음"으로 적는다. 문제은행 문항(`isProblemBank: true`)의 빈 `sources: []` 는 원래 그런 것이므로 "문제은행"으로 적고 "출처 없음"이라 하지 않는다.
 7. 단원·난이도가 고르게 퍼지도록 목표 수만큼 고른다.
 
