@@ -29,6 +29,7 @@ allowed-tools: mcp__plugin_mathsecr_api__myanalysis_count, mcp__plugin_mathsecr_
 
 ## 결과 정리
 
+- **답 모양.** 맨 앞 1~2줄에 결론(바로 쓸 수·판정·추천)을 쓰고, 다음에 표, 마지막에 번호 각주를 둔다. 근거 라벨은 행마다 표의 근거 칸에 쓴다. 구독·유사 검색 설정·미리보기·태그처럼 되풀이되는 단서는 각주에 한 번씩만 쓰고 본문과 표마다 다시 쓰지 않는다. 에이전트 보고를 옮길 때도 이 모양을 지키고 다시 늘리지 않는다.
 - 기준 문항별로 "같은문제 n · 숫자변형 n · 유사문제 n" 처럼 세고, 결과가 없는 기준 문항을 따로 표시한다.
 - `sourceless: true` 인 문항은 출처에서 빠진 문항이다(출처가 삭제·해제됨). 출처 칸에 "출처 없음"으로 적는다. 출처 ID 0 도 같은 뜻이다. 출처 정보가 누락됐다거나 오류라고 말하지 않는다.
 - 문제은행 문항(`isProblemBank: true`)은 원래 출처 목록이 비어 있다(`sources: []`, `sourceless` 없음). 출처 칸에 "문제은행"으로 적는다.
@@ -42,7 +43,7 @@ allowed-tools: mcp__plugin_mathsecr_api__myanalysis_count, mcp__plugin_mathsecr_
 - 직접 판독: `cell_image(cellId, curriculumId, parts)`는 허용된 문항·지문·해설 이미지를 호출당 최대 4장 반환한다. parts 입력은 `question`(기본)·`explanation`만, `explanationIds`는 확인된 해설 ID만 쓴다(`cell_detail.explanations[].id`, 기본 해설은 `isMain`·선택 해설은 `isChosen`). 해설은 정답과 전체 풀이를 포함하므로 필요한 분석에만 쓰고, 요청 없이 정답을 노출하지 않는다. 문항·풀이·LaTeX 전사는 하지 않는다.
 - 회원 공용 일일 이미지 예산은 **300장**. 요청 누적 기본 **4장**, 필요한 비교는 이유를 알리고 **8장 이내**, 8장 초과 전에는 사용자에게 묻는다. 위임 전 사용량을 차감하며 순차 호출한다. 호출 전 여유는 이번 호출이 돌려줄 수 있는 최대 장수로 계산한다(question 1장, 지문이 있으면 +1, 해설은 지정한 해설 ID 수, 기본 1장), `returned` 장수로 정산한다. `budgetRemainingToday`가 이번 호출 예상 장수보다 작으면 멈춘다. 이미지 호출은 병렬로 하지 않는다(동시 호출 중에는 다른 호출의 예약분이 잔액에서 잠시 빠져 보인다). 잔액은 가장 최근 응답의 `budgetRemainingToday`를 쓰고, 도구 오류로 잔액이 오지 않으면 직전 잔액에서 요청 장수를 뺀 값으로 이어 간다. 직전 잔액이 없으면 멈춘다. 실패한 부분은 차감되지 않으며 `denied`에 사유가 온다(해설은 `explanationId` 포함; `not_found` = 그 문항의 해설 ID가 아님, `no_explanation` = 해설이 없는 문항, `permission_denied` = 권한 없음). 응답에 `fallback: "cell_image_link"`가 있으면 읽지 못한 그 부분은 사용자에게 보기 링크를 제안한다.
 - 두 이미지 도구 모두 `denied`에 거절된 문항·부분·사유가 온다. 이를 보고하고 자동 재시도하지 않는다. `cell_image`의 "이미지를 가져올 수 없습니다" 오류도 재시도하지 않고 `cell_image_link` 보기를 제안하며 수학비서 데이터만으로 계속한다.
-- 모든 분석 근거를 `「수학비서 데이터」 도구.필드 + ID` 또는 `「이미지 판독(Claude 해석)」 cellId + part + 판독자`로 구분한다. 해석을 저장 정보라고 쓰지 않는다. `similar_cells` 결과에는 `hasPermission`/`isUnavailable`이 없으므로 활용 전 `cell_detail`로 확인한다.
+- 모든 분석 근거를 `「수학비서 데이터」 도구.필드 + ID` 또는 `「이미지 판독(Claude 해석)」 cellId + part + 판독자`로 구분한다. 해석을 저장 정보라고 쓰지 않는다. `similar_cells` 결과는 열 수 있는 문항만 오므로 권한 확인용 `cell_detail` 을 부르지 않는다. 단 `appliedRelationType` 이 TX 인 결과는 최대 5분 캐시라 그사이 권한이 바뀐 문항이 남을 수 있으므로, 추천·채택·이미지 전에 그 문항을 `cell_detail` 로 확인한다(개수만 셀 때는 확인하지 않는다). 다른 값이 필요해 부른 `cell_detail` 에서 `hasPermission` 이 true 가 아니거나 `isUnavailable`·`isProblemBankRemoved` 가 true 면 그 문항을 빼고, 사유 라벨(「문제은행 구독 필요」·「문제은행에서 빠진 문항」·「권한 없음」·「사용 불가」)과 「유사 결과와 상세 조회 결과가 다름」을 적는다. 원인은 추정하지 않는다.
 - 깊은 진단·비교·교체 추천은 `analysis` 스킬로 이어 간다. Code에서는 선택한 레시피 전문·메타데이터 출처·이미지 사용량/잔액을 `math-analyst`에 전달한다. 최종 분석자가 근거 이미지를 직접 가져온다. 앞선 판독은 판독자·출처를 보존하고 재판독하지 않았다고 표시한다.
 
 ## 하지 않는 것
